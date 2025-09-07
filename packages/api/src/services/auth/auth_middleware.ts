@@ -29,17 +29,18 @@ export interface SessionContext  {
  */
 export const requireAuth = async (request: FastifyRequest, reply: FastifyReply) => {
   try {
-    const sessionToken = request.cookies.sessionToken;
-    
-    if (!sessionToken) {
+    const sessionId = request.cookies.sessionId ;
+    console.log('-----------sessionId', sessionId);
+    if (!sessionId) {
       return reply.status(401).send({
         error: 'Authentication required',
       });
     }
     
     // Validate session
-    const session = await validateSession(sessionToken);
+    const session = await validateSession(sessionId);
     if (!session) {
+
       return reply.status(401).send({
         error: 'Invalid or expired session',
       });
@@ -84,10 +85,10 @@ export const requireCompany = async (request: FastifyRequest, reply: FastifyRepl
  */
 export const optionalAuth = async (request: FastifyRequest, reply: FastifyReply) => {
   try {
-    const sessionToken = request.cookies.sessionToken;
+    const sessionId = request.cookies.sessionId;
     
-    if (sessionToken) {
-      const session = await validateSession(sessionToken);
+    if (sessionId) {
+      const session = await validateSession(sessionId);
       if (session) {
         request.user = {
           id: session.userId,

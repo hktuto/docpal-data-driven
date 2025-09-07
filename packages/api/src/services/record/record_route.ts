@@ -39,6 +39,8 @@ import {
 
 // Schema definitions for request validation
 const createRecordSchema = {
+  tags: ['records'],
+  description: 'Create a new record in the specified table',
   params: {
     type: 'object',
     properties: {
@@ -49,10 +51,42 @@ const createRecordSchema = {
   body: {
     type: 'object',
     additionalProperties: true // Allow dynamic fields based on schema
+  },
+  response: {
+    201: {
+      type: 'object',
+      additionalProperties: true
+    },
+    400: {
+      type: 'object',
+      properties: {
+        error: { type: 'string' }
+      }
+    },
+    403: {
+      type: 'object',
+      properties: {
+        error: { type: 'string' }
+      }
+    },
+    404: {
+      type: 'object',
+      properties: {
+        error: { type: 'string' }
+      }
+    },
+    500: {
+      type: 'object',
+      properties: {
+        error: { type: 'string' }
+      }
+    }
   }
 } as const;
 
 const batchInsertSchema = {
+  tags: ['records'],
+  description: 'Create multiple records in a single batch operation',
   params: {
     type: 'object',
     properties: {
@@ -74,10 +108,56 @@ const batchInsertSchema = {
       }
     },
     required: ['records']
+  },
+  response: {
+    201: {
+      type: 'object',
+      properties: {
+        records: { type: 'array', items: { type: 'object', additionalProperties: true } },
+        total: { type: 'number' },
+        errors: { type: 'array', items: { type: 'object' } },
+        success: { type: 'boolean' }
+      }
+    },
+    207: {
+      type: 'object',
+      properties: {
+        records: { type: 'array', items: { type: 'object', additionalProperties: true } },
+        total: { type: 'number' },
+        errors: { type: 'array', items: { type: 'object' } },
+        success: { type: 'boolean' }
+      }
+    },
+    400: {
+      type: 'object',
+      properties: {
+        error: { type: 'string' }
+      }
+    },
+    403: {
+      type: 'object',
+      properties: {
+        error: { type: 'string' }
+      }
+    },
+    404: {
+      type: 'object',
+      properties: {
+        error: { type: 'string' }
+      }
+    },
+    500: {
+      type: 'object',
+      properties: {
+        error: { type: 'string' }
+      }
+    }
   }
 } as const;
 
 const getRecordsSchema = {
+  tags: ['records'],
+  description: 'Get records from the specified table with filtering and pagination',
   params: {
     type: 'object',
     properties: {
@@ -96,10 +176,35 @@ const getRecordsSchema = {
       // Dynamic filter parameters will be handled in the route handler
     },
     additionalProperties: true
+  },
+  response: {
+    200: {
+      type: 'object',
+      properties: {
+        records: { type: 'array', items: { type: 'object', additionalProperties: true } },
+        total: { type: 'number' },
+        limit: { type: 'number' },
+        offset: { type: 'number' }
+      }
+    },
+    404: {
+      type: 'object',
+      properties: {
+        error: { type: 'string' }
+      }
+    },
+    500: {
+      type: 'object',
+      properties: {
+        error: { type: 'string' }
+      }
+    }
   }
 } as const;
 
 const getRecordByIdSchema = {
+  tags: ['records'],
+  description: 'Get a specific record by ID from the specified table',
   params: {
     type: 'object',
     properties: {
@@ -107,10 +212,30 @@ const getRecordByIdSchema = {
       record_id: { type: 'string', format: 'uuid' }
     },
     required: ['table_slug', 'record_id']
+  },
+  response: {
+    200: {
+      type: 'object',
+      additionalProperties: true
+    },
+    404: {
+      type: 'object',
+      properties: {
+        error: { type: 'string' }
+      }
+    },
+    500: {
+      type: 'object',
+      properties: {
+        error: { type: 'string' }
+      }
+    }
   }
 } as const;
 
 const updateRecordSchema = {
+  tags: ['records'],
+  description: 'Update an existing record in the specified table',
   params: {
     type: 'object',
     properties: {
@@ -122,10 +247,42 @@ const updateRecordSchema = {
   body: {
     type: 'object',
     additionalProperties: true // Allow dynamic fields based on schema
+  },
+  response: {
+    200: {
+      type: 'object',
+      additionalProperties: true
+    },
+    400: {
+      type: 'object',
+      properties: {
+        error: { type: 'string' }
+      }
+    },
+    403: {
+      type: 'object',
+      properties: {
+        error: { type: 'string' }
+      }
+    },
+    404: {
+      type: 'object',
+      properties: {
+        error: { type: 'string' }
+      }
+    },
+    500: {
+      type: 'object',
+      properties: {
+        error: { type: 'string' }
+      }
+    }
   }
 } as const;
 
 const deleteRecordSchema = {
+  tags: ['records'],
+  description: 'Delete a record from the specified table',
   params: {
     type: 'object',
     properties: {
@@ -133,6 +290,27 @@ const deleteRecordSchema = {
       record_id: { type: 'string', format: 'uuid' }
     },
     required: ['table_slug', 'record_id']
+  },
+  response: {
+    204: { type: 'null' },
+    403: {
+      type: 'object',
+      properties: {
+        error: { type: 'string' }
+      }
+    },
+    404: {
+      type: 'object',
+      properties: {
+        error: { type: 'string' }
+      }
+    },
+    500: {
+      type: 'object',
+      properties: {
+        error: { type: 'string' }
+      }
+    }
   }
 } as const;
 
@@ -350,6 +528,8 @@ export const registerRecordRoutes = async (fastify: FastifyInstance) => {
   // Table view query
   fastify.post('/records/:table_slug/query/table', {
     schema: {
+      tags: ['records'],
+      description: 'Execute advanced table query with relations and aggregations',
       params: {
         type: 'object',
         properties: {
@@ -401,6 +581,30 @@ export const registerRecordRoutes = async (fastify: FastifyInstance) => {
           },
           aggregation_filter: { type: 'array', items: { type: 'string' } }
         }
+      },
+      response: {
+        200: {
+          type: 'object',
+          additionalProperties: true
+        },
+        400: {
+          type: 'object',
+          properties: {
+            error: { type: 'string' }
+          }
+        },
+        404: {
+          type: 'object',
+          properties: {
+            error: { type: 'string' }
+          }
+        },
+        500: {
+          type: 'object',
+          properties: {
+            error: { type: 'string' }
+          }
+        }
       }
     },
     preHandler: [requireAuth, requireCompany],
@@ -426,6 +630,8 @@ export const registerRecordRoutes = async (fastify: FastifyInstance) => {
   // Kanban view query
   fastify.post('/records/:table_slug/query/kanban', {
     schema: {
+      tags: ['records'],
+      description: 'Execute Kanban board query with status grouping',
       params: {
         type: 'object',
         properties: {
@@ -485,6 +691,24 @@ export const registerRecordRoutes = async (fastify: FastifyInstance) => {
             boards: { type: 'array', additionalProperties: true },
             aggregation: { type: 'object', additionalProperties: true }
           }
+        },
+        400: {
+          type: 'object',
+          properties: {
+            error: { type: 'string' }
+          }
+        },
+        404: {
+          type: 'object',
+          properties: {
+            error: { type: 'string' }
+          }
+        },
+        500: {
+          type: 'object',
+          properties: {
+            error: { type: 'string' }
+          }
         }
       }
     },
@@ -518,6 +742,8 @@ export const registerRecordRoutes = async (fastify: FastifyInstance) => {
   // Tree view query
   fastify.post('/records/:table_slug/query/tree', {
     schema: {
+      tags: ['records'],
+      description: 'Execute hierarchical tree query with parent-child relationships',
       params: {
         type: 'object',
         properties: {
@@ -569,6 +795,30 @@ export const registerRecordRoutes = async (fastify: FastifyInstance) => {
           aggregation_filter: { type: 'array', items: { type: 'string' } }
         },
         required: ['parentColumn', 'labelColumn']
+      },
+      response: {
+        200: {
+          type: 'object',
+          additionalProperties: true
+        },
+        400: {
+          type: 'object',
+          properties: {
+            error: { type: 'string' }
+          }
+        },
+        404: {
+          type: 'object',
+          properties: {
+            error: { type: 'string' }
+          }
+        },
+        500: {
+          type: 'object',
+          properties: {
+            error: { type: 'string' }
+          }
+        }
       }
     },
     preHandler: [requireAuth, requireCompany],
@@ -599,6 +849,8 @@ export const registerRecordRoutes = async (fastify: FastifyInstance) => {
   // Aggregation statistics
   fastify.post('/records/:table_slug/stats/agg', {
     schema: {
+      tags: ['records'],
+      description: 'Execute aggregation statistics query with grouping',
       params: {
         type: 'object',
         properties: {
@@ -626,6 +878,24 @@ export const registerRecordRoutes = async (fastify: FastifyInstance) => {
           having: { type: 'object' }
         },
         required: ['aggregations']
+      },
+      response: {
+        200: {
+          type: 'object',
+          additionalProperties: true
+        },
+        404: {
+          type: 'object',
+          properties: {
+            error: { type: 'string' }
+          }
+        },
+        500: {
+          type: 'object',
+          properties: {
+            error: { type: 'string' }
+          }
+        }
       }
     },
     preHandler: [requireAuth, requireCompany],
@@ -652,6 +922,8 @@ export const registerRecordRoutes = async (fastify: FastifyInstance) => {
   // Chart data
   fastify.post('/records/:table_slug/stats/chart', {
     schema: {
+      tags: ['records'],
+      description: 'Generate chart data with various visualization types',
       params: {
         type: 'object',
         properties: {
@@ -671,6 +943,24 @@ export const registerRecordRoutes = async (fastify: FastifyInstance) => {
           limit: { type: 'integer', minimum: 1, maximum: 1000 }
         },
         required: ['chartType', 'xAxis', 'yAxis']
+      },
+      response: {
+        200: {
+          type: 'object',
+          additionalProperties: true
+        },
+        404: {
+          type: 'object',
+          properties: {
+            error: { type: 'string' }
+          }
+        },
+        500: {
+          type: 'object',
+          properties: {
+            error: { type: 'string' }
+          }
+        }
       }
     },
     preHandler: [requireAuth, requireCompany],
@@ -697,6 +987,8 @@ export const registerRecordRoutes = async (fastify: FastifyInstance) => {
   // Gantt chart query
   fastify.post('/records/:table_slug/query/gantt', {
     schema: {
+      tags: ['records'],
+      description: 'Execute Gantt chart query for project timeline visualization',
       params: {
         type: 'object',
         properties: {
@@ -769,6 +1061,24 @@ export const registerRecordRoutes = async (fastify: FastifyInstance) => {
             aggregation: { type: 'object', additionalProperties: true },
             total: { type: 'number' }
           }
+        },
+        400: {
+          type: 'object',
+          properties: {
+            error: { type: 'string' }
+          }
+        },
+        404: {
+          type: 'object',
+          properties: {
+            error: { type: 'string' }
+          }
+        },
+        500: {
+          type: 'object',
+          properties: {
+            error: { type: 'string' }
+          }
         }
       }
     },
@@ -799,6 +1109,8 @@ export const registerRecordRoutes = async (fastify: FastifyInstance) => {
   // Breadcrumb endpoint for hierarchical data
   fastify.post('/records/:table_slug/breadcrumb', {
     schema: {
+      tags: ['records'],
+      description: 'Generate breadcrumb navigation for hierarchical data',
       params: {
         type: 'object',
         properties: {
@@ -842,6 +1154,24 @@ export const registerRecordRoutes = async (fastify: FastifyInstance) => {
               }
             },
             depth: { type: 'number' }
+          }
+        },
+        400: {
+          type: 'object',
+          properties: {
+            error: { type: 'string' }
+          }
+        },
+        404: {
+          type: 'object',
+          properties: {
+            error: { type: 'string' }
+          }
+        },
+        500: {
+          type: 'object',
+          properties: {
+            error: { type: 'string' }
           }
         }
       }
@@ -898,6 +1228,8 @@ export const registerRecordRoutes = async (fastify: FastifyInstance) => {
   // Dropdown query endpoint
   fastify.post('/records/:table_slug/query/dropdown', {
     schema: {
+      tags: ['records'],
+      description: 'Execute dropdown query for form field options',
       params: {
         type: 'object',
         properties: {
@@ -943,6 +1275,24 @@ export const registerRecordRoutes = async (fastify: FastifyInstance) => {
             },
             total: { type: 'number' },
             hasMore: { type: 'boolean' }
+          }
+        },
+        400: {
+          type: 'object',
+          properties: {
+            error: { type: 'string' }
+          }
+        },
+        404: {
+          type: 'object',
+          properties: {
+            error: { type: 'string' }
+          }
+        },
+        500: {
+          type: 'object',
+          properties: {
+            error: { type: 'string' }
           }
         }
       }

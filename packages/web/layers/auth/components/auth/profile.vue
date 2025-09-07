@@ -2,9 +2,9 @@
   <div class="user-profile">
     <div class="avatar-container" :class="{ 'editable': editable }">
       <img 
-        v-if="userProfile?.avatar" 
-        :src="apiUrl + '/companies/file/download/' + userProfile.avatar" 
-        :alt="userProfile?.first_name + ' ' + userProfile?.last_name || 'User Avatar'"
+        v-if="userProfile?.preferences?.avatar" 
+        :src="apiUrl + '/api/files/' + userProfile.preferences.avatar" 
+        :alt="userProfile?.name || 'User Avatar'"
         class="avatar-image"
         @click="handleAvatarClick"
       />
@@ -30,8 +30,9 @@
       </div>
     </div>
     
-    <div v-if="userProfile?.first_name && userProfile?.last_name" class="user-info">
-      <h3 class="user-name">{{ userProfile.first_name + ' ' + userProfile.last_name }}</h3>
+    <div v-if="userProfile?.name" class="user-info">
+      <h3 class="user-name">{{ userProfile.name }}</h3>
+      <p v-if="userProfile?.email" class="user-email">{{ userProfile.email }}</p>
     </div>
   </div>
 </template>
@@ -44,11 +45,18 @@ import { apiClient } from 'api-client'
 const {public:{apiUrl}} = useRuntimeConfig()
 interface UserProfile {
   id: string
-  first_name?: string
-  last_name?: string
-  phone_number?: string
-  locale?: string
-  avatar?: string
+  name: string
+  email: string
+  phone: string
+  address: string
+  city: string
+  preferences: {
+    avatar: string
+    locale: string
+  }
+  created_at: Date
+  updated_at: Date
+  created_by: string
 }
 
 interface Props {
@@ -76,15 +84,35 @@ async function handleFileChange (event: Event) {
   
   if (file) {
     emit('avatarUpdate', file)
-
-    const res = await apiClient.companies.postFileUpload({
-      file: file,
-      table: 'user_profiles',
-      row: props.userProfile.id,
-      column: 'avatar'
-    })
-    // Reset the input value to allow selecting the same file again
     
+    // Create FormData for file upload
+    const formData = new FormData()
+    formData.append('file', file)
+    formData.append('table', 'user_profile')
+    formData.append('row', props.userProfile.id)
+    formData.append('column', 'preferences.avatar')
+    
+    try {
+      const response = await apiClient.files.postUpload({
+        body: formData,
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      })
+      console.log('Response:', response)
+      if (response.ok) {
+        const result = await response.json()
+        console.log('Avatar uploaded successfully:', result)
+        emit('avatarUpdate', result.data.id)
+      } else {
+        console.error('Avatar upload failed:', response.statusText)
+      }
+    } catch (error) {
+      console.error('Avatar upload error:', error)
+    }
+    
+    // Reset the input value to allow selecting the same file again
+    target.value = ''
   }
 }
 </script>

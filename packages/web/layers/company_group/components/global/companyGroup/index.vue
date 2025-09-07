@@ -1,6 +1,6 @@
 <template>
   <AppPageContainer>
-    <DataViewTableManager tableName="user_profiles" />
+   group
   </AppPageContainer>
 </template>
 

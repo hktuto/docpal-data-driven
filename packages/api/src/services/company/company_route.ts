@@ -132,7 +132,7 @@ const createCompanySchema = {
             isNewUser: { type: 'boolean' }
           }
         },
-        sessionToken: { type: 'string' },
+        sessionId: { type: 'string' },
         message: { type: 'string' }
       }
     },
@@ -271,7 +271,12 @@ export const registerCompanyRoutes = async (fastify: FastifyInstance) => {
 
       // Seed default data
       await seedCompanyDefaults(pool, result.company.id, result.user.id);
-      reply.setCookie('sessionToken', result.sessionToken)
+      reply.setCookie('sessionId', result.sessionId, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 3600 * 7, // 7 hour
+        path: '/',
+      })
       return reply.status(201).send({
         ...result,
         message: 'Company and admin user created successfully',

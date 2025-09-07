@@ -33,6 +33,8 @@ const errorSchema = {
 
 // Schema definitions for request validation
 const createWorkflowSchema = {
+  tags: ['workflow'],
+  description: 'Create a new workflow definition',
   body: {
     type: 'object',
     properties: {
@@ -69,6 +71,8 @@ const createWorkflowSchema = {
 } as const;
 
 const updateWorkflowSchema = {
+  tags: ['workflow'],
+  description: 'Update an existing workflow definition',
   params: {
     type: 'object',
     properties: {
@@ -130,6 +134,7 @@ const executionParamsSchema = {
 } as const;
 
 const taskParamsSchema = {
+  tags: ['workflow'],
   params: {
     type: 'object',
     properties: {
@@ -140,6 +145,8 @@ const taskParamsSchema = {
 } as const;
 
 const completeTaskSchema = {
+  tags: ['workflow'],
+  description: 'Complete a user task in a workflow execution',
   params: {
     type: 'object',
     properties: {
@@ -182,6 +189,8 @@ const completeTaskSchema = {
 } as const;
 
 const triggerWorkflowSchema = {
+  tags: ['workflow'],
+  description: 'Manually trigger a workflow execution',
   params: {
     type: 'object',
     properties: {
@@ -218,6 +227,42 @@ export async function workflowRoutes(fastify: FastifyInstance) {
   
   // GET /api/workflows - List workflow definitions
   fastify.get('/workflows', {
+    schema: {
+      tags: ['workflow'],
+      description: 'List all workflow definitions for the current company',
+      querystring: {
+        type: 'object',
+        properties: {
+          limit: { type: 'integer', minimum: 1, maximum: 100, default: 50 },
+          offset: { type: 'integer', minimum: 0, default: 0 },
+          status: { type: 'string', enum: ['active', 'inactive', 'draft'] }
+        }
+      },
+      response: {
+        200: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              id: { type: 'string' },
+              name: { type: 'string' },
+              slug: { type: 'string' },
+              version: { type: 'string' },
+              definition: { type: 'object' },
+              events: { type: 'object' },
+              status: { type: 'string' },
+              created_by: { type: 'string' },
+              created_at: { type: 'string' },
+              updated_at: { type: 'string' }
+            }
+          }
+        },
+        400: errorSchema,
+        401: errorSchema,
+        403: errorSchema,
+        500: errorSchema
+      }
+    },
     preHandler: [requireAuth, requireCompany]
   }, async (request: FastifyRequest, reply: FastifyReply) => {
     try {
@@ -259,7 +304,15 @@ export async function workflowRoutes(fastify: FastifyInstance) {
   // GET /api/workflows/:slug - Get workflow definition
   fastify.get('/workflows/:slug', {
     schema: {
-      ...workflowParamsSchema,
+      tags: ['workflow'],
+      description: 'Get a specific workflow definition by slug',
+      params: {
+        type: 'object',
+        properties: {
+          slug: { type: 'string' }
+        },
+        required: ['slug']
+      },
       response: {
         200: {
           type: 'object',
@@ -330,6 +383,8 @@ export async function workflowRoutes(fastify: FastifyInstance) {
   // DELETE /api/workflows/:slug - Delete workflow definition
   fastify.delete('/workflows/:slug', {
     schema: {
+      tags: ['workflow'],
+      description: 'Delete a workflow definition',
       ...workflowParamsSchema,
       response: {
         204: { type: 'null' },
@@ -405,6 +460,8 @@ export async function workflowRoutes(fastify: FastifyInstance) {
   // GET /api/workflows/:slug/executions - List workflow executions
   fastify.get('/workflows/:slug/executions', {
     schema: {
+      tags: ['workflow'],
+      description: 'List workflow executions for a specific workflow',
       ...workflowParamsSchema,
       querystring: {
         type: 'object',
@@ -468,6 +525,8 @@ export async function workflowRoutes(fastify: FastifyInstance) {
   // GET /api/workflows/executions/:id - Get workflow execution details
   fastify.get('/workflows/executions/:id', {
     schema: {
+      tags: ['workflow'],
+      description: 'Get details of a specific workflow execution',
       ...executionParamsSchema,
       response: {
         200: {
@@ -518,6 +577,8 @@ export async function workflowRoutes(fastify: FastifyInstance) {
   // POST /api/workflows/executions/:id/cancel - Cancel workflow execution
   fastify.post('/workflows/executions/:id/cancel', {
     schema: {
+      tags: ['workflow'],
+      description: 'Cancel a running workflow execution',
       params: {
         type: 'object',
         properties: {
@@ -579,6 +640,8 @@ export async function workflowRoutes(fastify: FastifyInstance) {
   // GET /api/user-tasks - List user tasks
   fastify.get('/user-tasks', {
     schema: {
+      tags: ['workflow'],
+      description: 'List user tasks assigned to the current user',
       querystring: {
         type: 'object',
         properties: {
@@ -641,7 +704,15 @@ export async function workflowRoutes(fastify: FastifyInstance) {
   // GET /api/user-tasks/:id - Get user task details
   fastify.get('/user-tasks/:id', {
     schema: {
-      ...taskParamsSchema,
+      tags: ['workflow'],
+      description: 'Get details of a specific user task',
+      params: {
+        type: 'object',
+        properties: {
+          id: { type: 'string' }
+        },
+        required: ['id']
+      },
       response: {
         200: {
           type: 'object',

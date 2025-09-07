@@ -14,6 +14,7 @@ import {
   CreateRoleData,
   UpdateRoleData
 } from './role_service';
+import { requireAuth, requireCompany } from '../auth/auth_middleware';
 
 // Schemas
 const roleSchema = {
@@ -42,9 +43,9 @@ const roleWithHierarchySchema = {
     updated_at: { type: 'string', format: 'date-time' },
     children: {
       type: 'array',
-      items: { $ref: '#/definitions/RoleWithHierarchy' }
+      items: roleSchema
     },
-    parent: { $ref: '#/definitions/Role' }
+    parent: roleSchema
   },
   required: ['id', 'name', 'slug', 'description', 'created_at', 'updated_at']
 } as const;
@@ -164,7 +165,7 @@ export const registerRoleRoutes = async (fastify: FastifyInstance) => {
   // GET /api/roles - List all roles
   fastify.get('/roles', {
     schema: getRolesSchema,
-    preHandler: [fastify.authenticate, fastify.requireCompany]
+    preHandler: [requireAuth, requireCompany]
   }, async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       const { companyId } = request as any;
@@ -193,7 +194,7 @@ export const registerRoleRoutes = async (fastify: FastifyInstance) => {
   // POST /api/roles - Create new role
   fastify.post('/roles', {
     schema: createRoleSchema,
-    preHandler: [fastify.authenticate, fastify.requireCompany]
+    preHandler: [requireAuth, requireCompany]
   }, async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       const { companyId } = request as any;
@@ -218,7 +219,7 @@ export const registerRoleRoutes = async (fastify: FastifyInstance) => {
   // GET /api/roles/:roleId - Get role by ID
   fastify.get('/roles/:roleId', {
     schema: getRoleSchema,
-    preHandler: [fastify.authenticate, fastify.requireCompany]
+    preHandler: [requireAuth, requireCompany]
   }, async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       const { companyId } = request as any;
@@ -240,7 +241,7 @@ export const registerRoleRoutes = async (fastify: FastifyInstance) => {
   // PUT /api/roles/:roleId - Update role
   fastify.put('/roles/:roleId', {
     schema: updateRoleSchema,
-    preHandler: [fastify.authenticate, fastify.requireCompany]
+    preHandler: [requireAuth, requireCompany]
   }, async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       const { companyId } = request as any;
@@ -266,23 +267,25 @@ export const registerRoleRoutes = async (fastify: FastifyInstance) => {
 
   // DELETE /api/roles/:roleId - Delete role
   fastify.delete('/roles/:roleId', {
-    tags: ['roles'],
-    response: {
-      204: { type: 'null' },
-      400: {
-        type: 'object',
-        properties: {
-          error: { type: 'string' }
+    schema: {
+      tags: ['roles'],
+      response: {
+        204: { type: 'null' },
+        400: {
+          type: 'object',
+          properties: {
+            error: { type: 'string' }
+          }
+        },
+        404: {
+          type: 'object',
+          properties: {
+            error: { type: 'string' }
+          }
         }
       },
-      404: {
-        type: 'object',
-        properties: {
-          error: { type: 'string' }
-        }
-      }
     },
-    preHandler: [fastify.authenticate, fastify.requireCompany]
+    preHandler: [requireAuth, requireCompany]
   }, async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       const { companyId } = request as any;
@@ -309,7 +312,7 @@ export const registerRoleRoutes = async (fastify: FastifyInstance) => {
   // GET /api/roles/:roleId/descendants - Get role descendants
   fastify.get('/roles/:roleId/descendants', {
     schema: getRoleDescendantsSchema,
-    preHandler: [fastify.authenticate, fastify.requireCompany]
+    preHandler: [requireAuth, requireCompany]
   }, async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       const { companyId } = request as any;

@@ -155,52 +155,53 @@ export class HttpClient<SecurityDataType = unknown> {
  * Multi-tenant document management platform API
  */
 export class api<SecurityDataType extends unknown> extends HttpClient<SecurityDataType> {
-    health = {
-        /**
-         * No description
-         *
-         * @name Get
-         * @request GET:/health
-         * @secure
-         */
-        get: (params: RequestParams = {}) =>
-            this.request<void, any>({
-                path: `/health`,
-                method: "GET",
-                secure: true,
-                ...params,
-            }),
-    };
-    api = {
-        /**
-         * No description
-         *
-         * @name Getundefined
-         * @request GET:/api
-         * @secure
-         */
-        getundefined: (params: RequestParams = {}) =>
-            this.request<void, any>({
-                path: ``,
-                method: "GET",
-                secure: true,
-                ...params,
-            }),
+    /**
+     * No description
+     *
+     * @name GetHealth
+     * @request GET:/health
+     * @secure
+     */
+    getHealth = (params: RequestParams = {}) =>
+        this.request<void, any>({
+            path: `/health`,
+            method: "GET",
+            secure: true,
+            ...params,
+        });
 
+    /**
+     * No description
+     *
+     * @name GetApi
+     * @request GET:/api
+     * @secure
+     */
+    getApi = (params: RequestParams = {}) =>
+        this.request<void, any>({
+            path: `/api`,
+            method: "GET",
+            secure: true,
+            ...params,
+        });
+
+    auth = {
         /**
          * No description
          *
          * @tags auth
-         * @name PostAuthLogin
+         * @name PostLogin
          * @request POST:/api/auth/login
          * @secure
          */
-        postAuthLogin: (
+        postLogin: (
             data: {
                 /** @format email */
                 email: string;
                 /** @minLength 1 */
                 password: string;
+                /** @format uuid */
+                companyId: string;
             },
             params: RequestParams = {},
         ) =>
@@ -218,18 +219,18 @@ export class api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
                         /** @format date-time */
                         updated_at?: string;
                     };
-                    companies?: {
+                    company?: {
                         id?: string;
                         name?: string;
                         slug?: string;
                         role?: string;
-                    }[];
+                    };
                 },
                 {
                     error: string;
                 }
             >({
-                path: `/auth/login`,
+                path: `/api/auth/login`,
                 method: "POST",
                 body: data,
                 secure: true,
@@ -242,11 +243,11 @@ export class api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
          * No description
          *
          * @tags auth
-         * @name PostAuthRegister
+         * @name PostRegister
          * @request POST:/api/auth/register
          * @secure
          */
-        postAuthRegister: (
+        postRegister: (
             data: {
                 /** @format email */
                 email: string;
@@ -274,7 +275,7 @@ export class api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
                     error: string;
                 }
             >({
-                path: `/auth/register`,
+                path: `/api/auth/register`,
                 method: "POST",
                 body: data,
                 secure: true,
@@ -287,11 +288,11 @@ export class api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
          * @description Get available companies for user by email/password
          *
          * @tags auth
-         * @name PostAuthCompanies
+         * @name PostCompanies
          * @request POST:/api/auth/companies
          * @secure
          */
-        postAuthCompanies: (
+        postCompanies: (
             data: {
                 /** @format email */
                 email: string;
@@ -314,7 +315,7 @@ export class api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
                     error: string;
                 }
             >({
-                path: `/auth/companies`,
+                path: `/api/auth/companies`,
                 method: "POST",
                 body: data,
                 secure: true,
@@ -327,11 +328,11 @@ export class api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
          * No description
          *
          * @tags auth
-         * @name PostAuthLogout
+         * @name PostLogout
          * @request POST:/api/auth/logout
          * @secure
          */
-        postAuthLogout: (params: RequestParams = {}) =>
+        postLogout: (params: RequestParams = {}) =>
             this.request<
                 {
                     message?: string;
@@ -340,7 +341,7 @@ export class api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
                     error: string;
                 }
             >({
-                path: `/auth/logout`,
+                path: `/api/auth/logout`,
                 method: "POST",
                 secure: true,
                 format: "json",
@@ -351,11 +352,11 @@ export class api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
          * No description
          *
          * @tags auth
-         * @name GetAuthSession
+         * @name GetSession
          * @request GET:/api/auth/session
          * @secure
          */
-        getAuthSession: (params: RequestParams = {}) =>
+        getSession: (params: RequestParams = {}) =>
             this.request<
                 {
                     user?: {
@@ -380,22 +381,23 @@ export class api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
                     error: string;
                 }
             >({
-                path: `/auth/session`,
+                path: `/api/auth/session`,
                 method: "GET",
                 secure: true,
                 format: "json",
                 ...params,
             }),
-
+    };
+    companies = {
         /**
          * @description Get companies schema
          *
          * @tags company
-         * @name GetCompanies
+         * @name Get
          * @request GET:/api/companies
          * @secure
          */
-        getCompanies: (params: RequestParams = {}) =>
+        get: (params: RequestParams = {}) =>
             this.request<
                 {
                     id?: string;
@@ -419,7 +421,7 @@ export class api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
                     code?: string;
                 }
             >({
-                path: `/companies`,
+                path: `/api/companies`,
                 method: "GET",
                 secure: true,
                 format: "json",
@@ -430,11 +432,11 @@ export class api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
          * @description Create company with admin user schema
          *
          * @tags company
-         * @name PostCompanies
+         * @name Post
          * @request POST:/api/companies
          * @secure
          */
-        postCompanies: (
+        post: (
             data: {
                 /**
                  * @minLength 1
@@ -509,7 +511,7 @@ export class api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
                         updated_at?: string;
                         isNewUser?: boolean;
                     };
-                    sessionToken?: string;
+                    sessionId?: string;
                     message?: string;
                 },
                 {
@@ -517,7 +519,7 @@ export class api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
                     code?: string;
                 }
             >({
-                path: `/companies`,
+                path: `/api/companies`,
                 method: "POST",
                 body: data,
                 secure: true,
@@ -530,11 +532,11 @@ export class api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
          * @description Get company by ID schema
          *
          * @tags company
-         * @name GetCompaniesCompanyid
+         * @name GetCompanyid
          * @request GET:/api/companies/{companyId}
          * @secure
          */
-        getCompaniesCompanyid: (companyId: string, params: RequestParams = {}) =>
+        getCompanyid: (companyId: string, params: RequestParams = {}) =>
             this.request<
                 {
                     id?: string;
@@ -555,7 +557,7 @@ export class api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
                     code?: string;
                 }
             >({
-                path: `/companies/${companyId}`,
+                path: `/api/companies/${companyId}`,
                 method: "GET",
                 secure: true,
                 format: "json",
@@ -566,11 +568,11 @@ export class api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
          * @description Add user to company schema
          *
          * @tags company
-         * @name PostCompaniesCompanyidUsers
+         * @name PostCompanyidUsers
          * @request POST:/api/companies/{companyId}/users
          * @secure
          */
-        postCompaniesCompanyidUsers: (
+        postCompanyidUsers: (
             companyId: string,
             data: {
                 /** @format uuid */
@@ -589,7 +591,7 @@ export class api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
                     code?: string;
                 }
             >({
-                path: `/companies/${companyId}/users`,
+                path: `/api/companies/${companyId}/users`,
                 method: "POST",
                 body: data,
                 secure: true,
@@ -602,11 +604,11 @@ export class api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
          * @description Remove user from company schema
          *
          * @tags company
-         * @name DeleteCompaniesCompanyidUsersUserid
+         * @name DeleteCompanyidUsersUserid
          * @request DELETE:/api/companies/{companyId}/users/{userId}
          * @secure
          */
-        deleteCompaniesCompanyidUsersUserid: (companyId: string, userId: string, params: RequestParams = {}) =>
+        deleteCompanyidUsersUserid: (companyId: string, userId: string, params: RequestParams = {}) =>
             this.request<
                 {
                     message?: string;
@@ -616,23 +618,24 @@ export class api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
                     code?: string;
                 }
             >({
-                path: `/companies/${companyId}/users/${userId}`,
+                path: `/api/companies/${companyId}/users/${userId}`,
                 method: "DELETE",
                 secure: true,
                 format: "json",
                 ...params,
             }),
-
+    };
+    schemas = {
         /**
          * @description Get all custom data models for the current company
          *
          * @tags Schema
-         * @name GetSchemas
+         * @name Get
          * @summary List all schemas
          * @request GET:/api/schemas
          * @secure
          */
-        getSchemas: (params: RequestParams = {}) =>
+        get: (params: RequestParams = {}) =>
             this.request<
                 {
                     id?: string;
@@ -651,7 +654,7 @@ export class api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
                     code?: string;
                 }
             >({
-                path: `/schemas`,
+                path: `/api/schemas`,
                 method: "GET",
                 secure: true,
                 format: "json",
@@ -662,12 +665,12 @@ export class api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
          * @description Create a new custom data model and corresponding database table
          *
          * @tags Schema
-         * @name PostSchemas
+         * @name Post
          * @summary Create a new schema
          * @request POST:/api/schemas
          * @secure
          */
-        postSchemas: (
+        post: (
             data: {
                 /** @pattern ^[a-z][a-z0-9_]*$ */
                 slug: string;
@@ -717,7 +720,7 @@ export class api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
                     code?: string;
                 }
             >({
-                path: `/schemas`,
+                path: `/api/schemas`,
                 method: "POST",
                 body: data,
                 secure: true,
@@ -730,12 +733,12 @@ export class api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
          * @description Get a specific custom data model by its slug
          *
          * @tags Schema
-         * @name GetSchemasTableSlug
+         * @name GetTableSlug
          * @summary Get schema by slug
          * @request GET:/api/schemas/{table_slug}
          * @secure
          */
-        getSchemasTableSlug: (tableSlug: string, params: RequestParams = {}) =>
+        getTableSlug: (tableSlug: string, params: RequestParams = {}) =>
             this.request<
                 {
                     id?: string;
@@ -754,7 +757,7 @@ export class api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
                     code?: string;
                 }
             >({
-                path: `/schemas/${tableSlug}`,
+                path: `/api/schemas/${tableSlug}`,
                 method: "GET",
                 secure: true,
                 format: "json",
@@ -765,12 +768,12 @@ export class api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
          * @description Update an existing custom data model and modify the database table structure
          *
          * @tags Schema
-         * @name PutSchemasTableSlug
+         * @name PutTableSlug
          * @summary Update schema
          * @request PUT:/api/schemas/{table_slug}
          * @secure
          */
-        putSchemasTableSlug: (
+        putTableSlug: (
             tableSlug: string,
             data: {
                 /** @minLength 1 */
@@ -817,7 +820,7 @@ export class api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
                     code?: string;
                 }
             >({
-                path: `/schemas/${tableSlug}`,
+                path: `/api/schemas/${tableSlug}`,
                 method: "PUT",
                 body: data,
                 secure: true,
@@ -830,12 +833,12 @@ export class api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
          * @description Delete a custom data model and its corresponding database table
          *
          * @tags Schema
-         * @name DeleteSchemasTableSlug
+         * @name DeleteTableSlug
          * @summary Delete schema
          * @request DELETE:/api/schemas/{table_slug}
          * @secure
          */
-        deleteSchemasTableSlug: (tableSlug: string, params: RequestParams = {}) =>
+        deleteTableSlug: (tableSlug: string, params: RequestParams = {}) =>
             this.request<
                 void,
                 {
@@ -843,22 +846,134 @@ export class api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
                     code?: string;
                 }
             >({
-                path: `/schemas/${tableSlug}`,
+                path: `/api/schemas/${tableSlug}`,
                 method: "DELETE",
                 secure: true,
                 ...params,
             }),
 
         /**
+         * @description Get workflow event configuration for a custom data table
+         *
+         * @tags Schema Events
+         * @name GetTableSlugEvents
+         * @summary Get table event configuration
+         * @request GET:/api/schemas/{table_slug}/events
+         * @secure
+         */
+        getTableSlugEvents: (tableSlug: string, params: RequestParams = {}) =>
+            this.request<
+                object,
+                {
+                    error: string;
+                    code?: string;
+                }
+            >({
+                path: `/api/schemas/${tableSlug}/events`,
+                method: "GET",
+                secure: true,
+                format: "json",
+                ...params,
+            }),
+
+        /**
+         * @description Configure workflow triggers for a custom data table
+         *
+         * @tags Schema Events
+         * @name PutTableSlugEvents
+         * @summary Update table event configuration
+         * @request PUT:/api/schemas/{table_slug}/events
+         * @secure
+         */
+        putTableSlugEvents: (
+            tableSlug: string,
+            data: {
+                triggers?: {
+                    workflow_slug: string;
+                    event: "insert" | "update" | "delete" | "any";
+                    conditions?: object;
+                }[];
+            },
+            params: RequestParams = {},
+        ) =>
+            this.request<
+                object,
+                {
+                    error: string;
+                    code?: string;
+                }
+            >({
+                path: `/api/schemas/${tableSlug}/events`,
+                method: "PUT",
+                body: data,
+                secure: true,
+                type: ContentType.Json,
+                format: "json",
+                ...params,
+            }),
+
+        /**
+         * @description Remove all workflow event configuration for a custom data table
+         *
+         * @tags Schema Events
+         * @name DeleteTableSlugEvents
+         * @summary Remove table event configuration
+         * @request DELETE:/api/schemas/{table_slug}/events
+         * @secure
+         */
+        deleteTableSlugEvents: (tableSlug: string, params: RequestParams = {}) =>
+            this.request<
+                void,
+                {
+                    error: string;
+                    code?: string;
+                }
+            >({
+                path: `/api/schemas/${tableSlug}/events`,
+                method: "DELETE",
+                secure: true,
+                ...params,
+            }),
+
+        /**
+         * @description Get all custom data tables that have workflow event configurations
+         *
+         * @tags Schema Events
+         * @name GetEvents
+         * @summary List tables with event configurations
+         * @request GET:/api/schemas/events
+         * @secure
+         */
+        getEvents: (params: RequestParams = {}) =>
+            this.request<
+                {
+                    slug?: string;
+                    label?: string;
+                    events?: object;
+                }[],
+                {
+                    error: string;
+                    code?: string;
+                }
+            >({
+                path: `/api/schemas/events`,
+                method: "GET",
+                secure: true,
+                format: "json",
+                ...params,
+            }),
+    };
+    records = {
+        /**
          * No description
          *
-         * @name PostRecordsTableSlug
+         * @name PostTableSlug
          * @request POST:/api/records/{table_slug}
          * @secure
          */
-        postRecordsTableSlug: (tableSlug: string, data: Record<string, any>, params: RequestParams = {}) =>
+        postTableSlug: (tableSlug: string, data: Record<string, any>, params: RequestParams = {}) =>
             this.request<void, any>({
-                path: `/records/${tableSlug}`,
+                path: `/api/records/${tableSlug}`,
                 method: "POST",
                 body: data,
                 secure: true,
@@ -869,11 +984,11 @@ export class api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         /**
          * No description
          *
-         * @name GetRecordsTableSlug
+         * @name GetTableSlug
          * @request GET:/api/records/{table_slug}
          * @secure
          */
-        getRecordsTableSlug: (
+        getTableSlug: (
             tableSlug: string,
             query?: {
                 /**
@@ -895,7 +1010,7 @@ export class api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
             params: RequestParams = {},
         ) =>
             this.request<void, any>({
-                path: `/records/${tableSlug}`,
+                path: `/api/records/${tableSlug}`,
                 method: "GET",
                 query: query,
                 secure: true,
@@ -905,11 +1020,11 @@ export class api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         /**
          * No description
          *
-         * @name PostRecordsTableSlugBatch
+         * @name PostTableSlugBatch
          * @request POST:/api/records/{table_slug}/batch
          * @secure
          */
-        postRecordsTableSlugBatch: (
+        postTableSlugBatch: (
             tableSlug: string,
             data: {
                 /**
@@ -921,7 +1036,7 @@ export class api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
             params: RequestParams = {},
         ) =>
             this.request<void, any>({
-                path: `/records/${tableSlug}/batch`,
+                path: `/api/records/${tableSlug}/batch`,
                 method: "POST",
                 body: data,
                 secure: true,
@@ -932,13 +1047,13 @@ export class api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         /**
          * No description
          *
-         * @name GetRecordsTableSlugRecordId
+         * @name GetTableSlugRecordId
          * @request GET:/api/records/{table_slug}/{record_id}
          * @secure
          */
-        getRecordsTableSlugRecordId: (tableSlug: string, recordId: string, params: RequestParams = {}) =>
+        getTableSlugRecordId: (tableSlug: string, recordId: string, params: RequestParams = {}) =>
             this.request<void, any>({
-                path: `/records/${tableSlug}/${recordId}`,
+                path: `/api/records/${tableSlug}/${recordId}`,
                 method: "GET",
                 secure: true,
                 ...params,
@@ -947,18 +1062,18 @@ export class api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         /**
          * No description
          *
-         * @name PutRecordsTableSlugRecordId
+         * @name PutTableSlugRecordId
          * @request PUT:/api/records/{table_slug}/{record_id}
          * @secure
          */
-        putRecordsTableSlugRecordId: (
+        putTableSlugRecordId: (
             tableSlug: string,
             recordId: string,
             data: Record<string, any>,
             params: RequestParams = {},
         ) =>
             this.request<void, any>({
-                path: `/records/${tableSlug}/${recordId}`,
+                path: `/api/records/${tableSlug}/${recordId}`,
                 method: "PUT",
                 body: data,
                 secure: true,
@@ -969,13 +1084,13 @@ export class api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         /**
          * No description
          *
-         * @name DeleteRecordsTableSlugRecordId
+         * @name DeleteTableSlugRecordId
          * @request DELETE:/api/records/{table_slug}/{record_id}
          * @secure
          */
-        deleteRecordsTableSlugRecordId: (tableSlug: string, recordId: string, params: RequestParams = {}) =>
+        deleteTableSlugRecordId: (tableSlug: string, recordId: string, params: RequestParams = {}) =>
             this.request<void, any>({
-                path: `/records/${tableSlug}/${recordId}`,
+                path: `/api/records/${tableSlug}/${recordId}`,
                 method: "DELETE",
                 secure: true,
                 ...params,
@@ -984,11 +1099,11 @@ export class api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         /**
          * No description
          *
-         * @name PostRecordsTableSlugQueryTable
+         * @name PostTableSlugQueryTable
          * @request POST:/api/records/{table_slug}/query/table
          * @secure
          */
-        postRecordsTableSlugQueryTable: (
+        postTableSlugQueryTable: (
             tableSlug: string,
             data: {
                 columns?: string[];
@@ -1026,7 +1141,7 @@ export class api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
             params: RequestParams = {},
         ) =>
             this.request<void, any>({
-                path: `/records/${tableSlug}/query/table`,
+                path: `/api/records/${tableSlug}/query/table`,
                 method: "POST",
                 body: data,
                 secure: true,
@@ -1037,11 +1152,11 @@ export class api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         /**
          * No description
          *
-         * @name PostRecordsTableSlugQueryKanban
+         * @name PostTableSlugQueryKanban
          * @request POST:/api/records/{table_slug}/query/kanban
          * @secure
          */
-        postRecordsTableSlugQueryKanban: (
+        postTableSlugQueryKanban: (
             tableSlug: string,
             data: {
                 statusColumn: string;
@@ -1083,7 +1198,7 @@ export class api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
                 },
                 any
             >({
-                path: `/records/${tableSlug}/query/kanban`,
+                path: `/api/records/${tableSlug}/query/kanban`,
                 method: "POST",
                 body: data,
                 secure: true,
@@ -1095,11 +1210,11 @@ export class api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         /**
          * No description
          *
-         * @name PostRecordsTableSlugQueryTree
+         * @name PostTableSlugQueryTree
          * @request POST:/api/records/{table_slug}/query/tree
          * @secure
          */
-        postRecordsTableSlugQueryTree: (
+        postTableSlugQueryTree: (
             tableSlug: string,
             data: {
                 parentColumn: string;
@@ -1135,7 +1250,7 @@ export class api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
             params: RequestParams = {},
         ) =>
             this.request<void, any>({
-                path: `/records/${tableSlug}/query/tree`,
+                path: `/api/records/${tableSlug}/query/tree`,
                 method: "POST",
                 body: data,
                 secure: true,
@@ -1146,11 +1261,11 @@ export class api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         /**
          * No description
          *
-         * @name PostRecordsTableSlugStatsAgg
+         * @name PostTableSlugStatsAgg
          * @request POST:/api/records/{table_slug}/stats/agg
          * @secure
          */
-        postRecordsTableSlugStatsAgg: (
+        postTableSlugStatsAgg: (
             tableSlug: string,
             data: {
                 groupBy?: string[];
@@ -1165,7 +1280,7 @@ export class api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
             params: RequestParams = {},
         ) =>
             this.request<void, any>({
-                path: `/records/${tableSlug}/stats/agg`,
+                path: `/api/records/${tableSlug}/stats/agg`,
                 method: "POST",
                 body: data,
                 secure: true,
@@ -1176,11 +1291,11 @@ export class api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         /**
          * No description
          *
-         * @name PostRecordsTableSlugStatsChart
+         * @name PostTableSlugStatsChart
          * @request POST:/api/records/{table_slug}/stats/chart
          * @secure
          */
-        postRecordsTableSlugStatsChart: (
+        postTableSlugStatsChart: (
             tableSlug: string,
             data: {
                 chartType: "bar" | "line" | "pie" | "scatter";
@@ -1198,7 +1313,7 @@ export class api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
             params: RequestParams = {},
         ) =>
             this.request<void, any>({
-                path: `/records/${tableSlug}/stats/chart`,
+                path: `/api/records/${tableSlug}/stats/chart`,
                 method: "POST",
                 body: data,
                 secure: true,
@@ -1209,11 +1324,11 @@ export class api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         /**
          * No description
          *
-         * @name PostRecordsTableSlugQueryGantt
+         * @name PostTableSlugQueryGantt
          * @request POST:/api/records/{table_slug}/query/gantt
          * @secure
          */
-        postRecordsTableSlugQueryGantt: (
+        postTableSlugQueryGantt: (
             tableSlug: string,
             data: {
                 taskNameColumn: string;
@@ -1263,7 +1378,7 @@ export class api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
                 },
                 any
             >({
-                path: `/records/${tableSlug}/query/gantt`,
+                path: `/api/records/${tableSlug}/query/gantt`,
                 method: "POST",
                 body: data,
                 secure: true,
@@ -1275,11 +1390,11 @@ export class api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         /**
          * No description
          *
-         * @name PostRecordsTableSlugBreadcrumb
+         * @name PostTableSlugBreadcrumb
          * @request POST:/api/records/{table_slug}/breadcrumb
          * @secure
          */
-        postRecordsTableSlugBreadcrumb: (
+        postTableSlugBreadcrumb: (
             tableSlug: string,
             data: {
                 record_id: string;
@@ -1307,7 +1422,7 @@ export class api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
                 },
                 any
             >({
-                path: `/records/${tableSlug}/breadcrumb`,
+                path: `/api/records/${tableSlug}/breadcrumb`,
                 method: "POST",
                 body: data,
                 secure: true,
@@ -1319,75 +1434,2081 @@ export class api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         /**
          * No description
          *
-         * @name PostFilesUpload
-         * @request POST:/api/files/upload
+         * @name PostTableSlugQueryDropdown
+         * @request POST:/api/records/{table_slug}/query/dropdown
          * @secure
          */
-        postFilesUpload: (params: RequestParams = {}) =>
-            this.request<void, any>({
-                path: `/files/upload`,
-                method: "POST",
-                secure: true,
-                ...params,
-            }),
-
-        /**
-         * No description
-         *
-         * @name GetFilesFileid
-         * @request GET:/api/files/{fileId}
-         * @secure
-         */
-        getFilesFileid: (fileId: string, params: RequestParams = {}) =>
-            this.request<void, any>({
-                path: `/files/${fileId}`,
-                method: "GET",
-                secure: true,
-                ...params,
-            }),
-
-        /**
-         * No description
-         *
-         * @name PostFilesFileidDelete
-         * @request POST:/api/files/{fileId}/delete
-         * @secure
-         */
-        postFilesFileidDelete: (
-            fileId: string,
+        postTableSlugQueryDropdown: (
+            tableSlug: string,
             data: {
-                /** @maxLength 128 */
-                table?: string;
-                /** @maxLength 128 */
-                column?: string;
-                /** @format uuid */
-                row?: string;
-                /** @maxLength 128 */
-                metadataField?: string;
+                label: string;
+                value: string;
+                search?: string;
+                filters?: object;
+                sort?: {
+                    field: string;
+                    direction: "ASC" | "DESC";
+                }[];
+                /**
+                 * @min 1
+                 * @max 1000
+                 * @default 100
+                 */
+                limit?: number;
+                /** @default true */
+                distinct?: boolean;
+                /** @default false */
+                includeEmpty?: boolean;
+                groupBy?: string;
             },
             params: RequestParams = {},
         ) =>
-            this.request<void, any>({
-                path: `/files/${fileId}/delete`,
+            this.request<
+                {
+                    options?: Record<string, any>[];
+                    total?: number;
+                    hasMore?: boolean;
+                },
+                any
+            >({
+                path: `/api/records/${tableSlug}/query/dropdown`,
                 method: "POST",
                 body: data,
                 secure: true,
                 type: ContentType.Json,
+                format: "json",
+                ...params,
+            }),
+    };
+    files = {
+        /**
+         * No description
+         *
+         * @name PostUpload
+         * @request POST:/api/files/upload
+         * @secure
+         */
+        postUpload: (params: RequestParams = {}) =>
+            this.request<
+                {
+                    filePath?: string;
+                    metadata?: object;
+                    message?: string;
+                },
+                {
+                    error: string;
+                    code?: string;
+                }
+            >({
+                path: `/api/files/upload`,
+                method: "POST",
+                secure: true,
+                format: "json",
                 ...params,
             }),
 
         /**
          * No description
          *
-         * @name GetFilesFileidReferences
+         * @name GetFileid
+         * @request GET:/api/files/{fileId}
+         * @secure
+         */
+        getFileid: (fileId: string, params: RequestParams = {}) =>
+            this.request<
+                {
+                    /** @format binary */
+                    stream?: File;
+                    metadata?: object;
+                },
+                {
+                    error: string;
+                    code?: string;
+                }
+            >({
+                path: `/api/files/${fileId}`,
+                method: "GET",
+                secure: true,
+                format: "json",
+                ...params,
+            }),
+
+        /**
+         * No description
+         *
+         * @name PostFileidDelete
+         * @request POST:/api/files/{fileId}/delete
+         * @secure
+         */
+        postFileidDelete: (
+            fileId: string,
+            data: {
+                /** @maxLength 128 */
+                table?: string;
+                /**
+                 * Column name or nested JSONB path using dot notation (e.g., "file_path" or "metadata.files.primary")
+                 * @maxLength 128
+                 */
+                column?: string;
+                /** @format uuid */
+                row?: string;
+                /**
+                 * Optional metadata field name or nested JSONB path using dot notation
+                 * @maxLength 128
+                 */
+                metadataField?: string;
+            },
+            params: RequestParams = {},
+        ) =>
+            this.request<
+                {
+                    message?: string;
+                },
+                {
+                    error: string;
+                    code?: string;
+                }
+            >({
+                path: `/api/files/${fileId}/delete`,
+                method: "POST",
+                body: data,
+                secure: true,
+                type: ContentType.Json,
+                format: "json",
+                ...params,
+            }),
+
+        /**
+         * No description
+         *
+         * @name GetFileidReferences
          * @request GET:/api/files/{fileId}/references
          * @secure
          */
-        getFilesFileidReferences: (fileId: string, params: RequestParams = {}) =>
-            this.request<void, any>({
-                path: `/files/${fileId}/references`,
+        getFileidReferences: (fileId: string, params: RequestParams = {}) =>
+            this.request<
+                {
+                    /** @format binary */
+                    stream?: File;
+                    metadata?: object;
+                },
+                {
+                    error: string;
+                    code?: string;
+                }
+            >({
+                path: `/api/files/${fileId}/references`,
                 method: "GET",
                 secure: true,
+                format: "json",
+                ...params,
+            }),
+    };
+    workflows = {
+        /**
+         * No description
+         *
+         * @name Get
+         * @request GET:/api/workflows
+         * @secure
+         */
+        get: (params: RequestParams = {}) =>
+            this.request<void, any>({
+                path: `/api/workflows`,
+                method: "GET",
+                secure: true,
+                ...params,
+            }),
+
+        /**
+         * No description
+         *
+         * @name Post
+         * @request POST:/api/workflows
+         * @secure
+         */
+        post: (
+            data: {
+                /**
+                 * @minLength 1
+                 * @maxLength 255
+                 */
+                name: string;
+                /**
+                 * @maxLength 100
+                 * @pattern ^[a-z][a-z0-9_-]*$
+                 */
+                slug: string;
+                /** @maxLength 20 */
+                version?: string;
+                definition: object;
+                events?: object;
+                status?: "active" | "inactive" | "draft";
+            },
+            params: RequestParams = {},
+        ) =>
+            this.request<
+                {
+                    id?: string;
+                    name?: string;
+                    slug?: string;
+                    version?: string;
+                    definition?: object;
+                    events?: object;
+                    status?: string;
+                    created_by?: string;
+                    created_at?: string;
+                    updated_at?: string;
+                },
+                {
+                    error: string;
+                    code?: string;
+                }
+            >({
+                path: `/api/workflows`,
+                method: "POST",
+                body: data,
+                secure: true,
+                type: ContentType.Json,
+                format: "json",
+                ...params,
+            }),
+
+        /**
+         * No description
+         *
+         * @name GetSlug
+         * @request GET:/api/workflows/{slug}
+         * @secure
+         */
+        getSlug: (slug: string, params: RequestParams = {}) =>
+            this.request<
+                {
+                    id?: string;
+                    name?: string;
+                    slug?: string;
+                    version?: string;
+                    definition?: object;
+                    events?: object;
+                    status?: string;
+                    created_by?: string;
+                    created_at?: string;
+                    updated_at?: string;
+                },
+                {
+                    error: string;
+                    code?: string;
+                }
+            >({
+                path: `/api/workflows/${slug}`,
+                method: "GET",
+                secure: true,
+                format: "json",
+                ...params,
+            }),
+
+        /**
+         * No description
+         *
+         * @name PutSlug
+         * @request PUT:/api/workflows/{slug}
+         * @secure
+         */
+        putSlug: (
+            slug: string,
+            data: {
+                /**
+                 * @minLength 1
+                 * @maxLength 255
+                 */
+                name?: string;
+                definition?: object;
+                events?: object;
+                status?: "active" | "inactive" | "draft";
+            },
+            params: RequestParams = {},
+        ) =>
+            this.request<
+                {
+                    id?: string;
+                    name?: string;
+                    slug?: string;
+                    version?: string;
+                    definition?: object;
+                    events?: object;
+                    status?: string;
+                    created_by?: string;
+                    created_at?: string;
+                    updated_at?: string;
+                },
+                {
+                    error: string;
+                    code?: string;
+                }
+            >({
+                path: `/api/workflows/${slug}`,
+                method: "PUT",
+                body: data,
+                secure: true,
+                type: ContentType.Json,
+                format: "json",
+                ...params,
+            }),
+
+        /**
+         * No description
+         *
+         * @name DeleteSlug
+         * @request DELETE:/api/workflows/{slug}
+         * @secure
+         */
+        deleteSlug: (slug: string, params: RequestParams = {}) =>
+            this.request<
+                void,
+                {
+                    error: string;
+                    code?: string;
+                }
+            >({
+                path: `/api/workflows/${slug}`,
+                method: "DELETE",
+                secure: true,
+                ...params,
+            }),
+
+        /**
+         * No description
+         *
+         * @name PostSlugTrigger
+         * @request POST:/api/workflows/{slug}/trigger
+         * @secure
+         */
+        postSlugTrigger: (
+            slug: string,
+            data: {
+                trigger_data?: object;
+            },
+            params: RequestParams = {},
+        ) =>
+            this.request<
+                {
+                    execution_id?: string;
+                    temporal_workflow_id?: string;
+                    temporal_run_id?: string;
+                    message?: string;
+                },
+                {
+                    error: string;
+                    code?: string;
+                }
+            >({
+                path: `/api/workflows/${slug}/trigger`,
+                method: "POST",
+                body: data,
+                secure: true,
+                type: ContentType.Json,
+                format: "json",
+                ...params,
+            }),
+
+        /**
+         * No description
+         *
+         * @name GetSlugExecutions
+         * @request GET:/api/workflows/{slug}/executions
+         * @secure
+         */
+        getSlugExecutions: (
+            slug: string,
+            query?: {
+                /**
+                 * @min 1
+                 * @max 100
+                 * @default 50
+                 */
+                limit?: number;
+                /**
+                 * @min 0
+                 * @default 0
+                 */
+                offset?: number;
+            },
+            params: RequestParams = {},
+        ) =>
+            this.request<
+                {
+                    id?: string;
+                    workflow_definition_id?: string;
+                    definition?: object;
+                    temporal_workflow_id?: string;
+                    temporal_run_id?: string;
+                    trigger_data?: object;
+                    status?: string;
+                    started_at?: string;
+                    completed_at?: string;
+                    result?: object;
+                    error_message?: string;
+                    workflow_name?: string;
+                    workflow_slug?: string;
+                }[],
+                {
+                    error: string;
+                    code?: string;
+                }
+            >({
+                path: `/api/workflows/${slug}/executions`,
+                method: "GET",
+                query: query,
+                secure: true,
+                format: "json",
+                ...params,
+            }),
+
+        /**
+         * No description
+         *
+         * @name GetExecutionsId
+         * @request GET:/api/workflows/executions/{id}
+         * @secure
+         */
+        getExecutionsId: (id: string, params: RequestParams = {}) =>
+            this.request<
+                {
+                    id?: string;
+                    workflow_definition_id?: string;
+                    definition?: object;
+                    temporal_workflow_id?: string;
+                    temporal_run_id?: string;
+                    trigger_data?: object;
+                    status?: string;
+                    started_at?: string;
+                    completed_at?: string;
+                    result?: object;
+                    error_message?: string;
+                    workflow_name?: string;
+                    workflow_slug?: string;
+                },
+                {
+                    error: string;
+                    code?: string;
+                }
+            >({
+                path: `/api/workflows/executions/${id}`,
+                method: "GET",
+                secure: true,
+                format: "json",
+                ...params,
+            }),
+
+        /**
+         * No description
+         *
+         * @name PostExecutionsIdCancel
+         * @request POST:/api/workflows/executions/{id}/cancel
+         * @secure
+         */
+        postExecutionsIdCancel: (
+            id: string,
+            data: {
+                reason?: string;
+            },
+            params: RequestParams = {},
+        ) =>
+            this.request<
+                {
+                    message?: string;
+                    status?: string;
+                },
+                {
+                    error: string;
+                    code?: string;
+                }
+            >({
+                path: `/api/workflows/executions/${id}/cancel`,
+                method: "POST",
+                body: data,
+                secure: true,
+                type: ContentType.Json,
+                format: "json",
+                ...params,
+            }),
+    };
+    userTasks = {
+        /**
+         * No description
+         *
+         * @name GetUserTasks
+         * @request GET:/api/user-tasks
+         * @secure
+         */
+        getUserTasks: (
+            query?: {
+                status?: "pending" | "assigned" | "completed" | "cancelled" | "timeout";
+                /**
+                 * @min 1
+                 * @max 100
+                 * @default 50
+                 */
+                limit?: number;
+                /**
+                 * @min 0
+                 * @default 0
+                 */
+                offset?: number;
+            },
+            params: RequestParams = {},
+        ) =>
+            this.request<
+                {
+                    id?: string;
+                    workflow_execution_id?: string;
+                    step_id?: string;
+                    assignee_id?: string;
+                    candidate?: object;
+                    task_type?: string;
+                    form_definition?: object;
+                    context_data?: object;
+                    status?: string;
+                    result?: object;
+                    created_at?: string;
+                    completed_at?: string;
+                    timeout_at?: string;
+                    temporal_workflow_id?: string;
+                    workflow_name?: string;
+                    workflow_slug?: string;
+                }[],
+                {
+                    error: string;
+                    code?: string;
+                }
+            >({
+                path: `/api/user-tasks`,
+                method: "GET",
+                query: query,
+                secure: true,
+                format: "json",
+                ...params,
+            }),
+
+        /**
+         * No description
+         *
+         * @name GetUserTasksId
+         * @request GET:/api/user-tasks/{id}
+         * @secure
+         */
+        getUserTasksId: (id: string, params: RequestParams = {}) =>
+            this.request<
+                {
+                    id?: string;
+                    workflow_execution_id?: string;
+                    step_id?: string;
+                    assignee_id?: string;
+                    candidate?: object;
+                    task_type?: string;
+                    form_definition?: object;
+                    context_data?: object;
+                    status?: string;
+                    result?: object;
+                    created_at?: string;
+                    completed_at?: string;
+                    timeout_at?: string;
+                    temporal_workflow_id?: string;
+                    workflow_name?: string;
+                    workflow_slug?: string;
+                },
+                {
+                    error: string;
+                    code?: string;
+                }
+            >({
+                path: `/api/user-tasks/${id}`,
+                method: "GET",
+                secure: true,
+                format: "json",
+                ...params,
+            }),
+
+        /**
+         * No description
+         *
+         * @name PostUserTasksIdComplete
+         * @request POST:/api/user-tasks/{id}/complete
+         * @secure
+         */
+        postUserTasksIdComplete: (
+            id: string,
+            data: {
+                result: object;
+            },
+            params: RequestParams = {},
+        ) =>
+            this.request<
+                {
+                    id?: string;
+                    workflow_execution_id?: string;
+                    step_id?: string;
+                    assignee_id?: string;
+                    candidate?: object;
+                    task_type?: string;
+                    form_definition?: object;
+                    context_data?: object;
+                    status?: string;
+                    result?: object;
+                    created_at?: string;
+                    completed_at?: string;
+                    timeout_at?: string;
+                },
+                {
+                    error: string;
+                    code?: string;
+                }
+            >({
+                path: `/api/user-tasks/${id}/complete`,
+                method: "POST",
+                body: data,
+                secure: true,
+                type: ContentType.Json,
+                format: "json",
+                ...params,
+            }),
+    };
+    users = {
+        /**
+         * No description
+         *
+         * @tags users
+         * @name Get
+         * @request GET:/api/users
+         * @secure
+         */
+        get: (
+            query?: {
+                search?: string;
+                /**
+                 * @min 1
+                 * @max 100
+                 * @default 50
+                 */
+                limit?: number;
+                /** @default false */
+                with_assignments?: boolean;
+            },
+            params: RequestParams = {},
+        ) =>
+            this.request<
+                | {
+                      id: string;
+                      name: string;
+                      email: string;
+                      phone?: string | null;
+                      address?: string | null;
+                      city?: string | null;
+                      preferences: object;
+                      /** @format date-time */
+                      created_at: string;
+                      /** @format date-time */
+                      updated_at: string;
+                      created_by: string;
+                  }[]
+                | {
+                      user_id?: string;
+                      role_id?: string | null;
+                      role_name?: string | null;
+                      groups?: {
+                          group_id?: string;
+                          group_name?: string;
+                          /** @format date-time */
+                          assigned_at?: string;
+                      }[];
+                  }[],
+                any
+            >({
+                path: `/api/users`,
+                method: "GET",
+                query: query,
+                secure: true,
+                format: "json",
+                ...params,
+            }),
+
+        /**
+         * No description
+         *
+         * @tags users
+         * @name Post
+         * @request POST:/api/users
+         * @secure
+         */
+        post: (
+            data: {
+                /**
+                 * @minLength 1
+                 * @maxLength 128
+                 */
+                name: string;
+                /**
+                 * @format email
+                 * @maxLength 128
+                 */
+                email: string;
+                /** @maxLength 128 */
+                phone?: string;
+                /** @maxLength 256 */
+                address?: string;
+                /** @maxLength 128 */
+                city?: string;
+                preferences?: object;
+            },
+            params: RequestParams = {},
+        ) =>
+            this.request<
+                {
+                    id: string;
+                    name: string;
+                    email: string;
+                    phone?: string | null;
+                    address?: string | null;
+                    city?: string | null;
+                    preferences: object;
+                    /** @format date-time */
+                    created_at: string;
+                    /** @format date-time */
+                    updated_at: string;
+                    created_by: string;
+                },
+                {
+                    error?: string;
+                }
+            >({
+                path: `/api/users`,
+                method: "POST",
+                body: data,
+                secure: true,
+                type: ContentType.Json,
+                format: "json",
+                ...params,
+            }),
+
+        /**
+         * No description
+         *
+         * @tags users
+         * @name GetUserid
+         * @request GET:/api/users/{userId}
+         * @secure
+         */
+        getUserid: (userId: string, params: RequestParams = {}) =>
+            this.request<
+                {
+                    id: string;
+                    name: string;
+                    email: string;
+                    phone?: string | null;
+                    address?: string | null;
+                    city?: string | null;
+                    preferences: object;
+                    /** @format date-time */
+                    created_at: string;
+                    /** @format date-time */
+                    updated_at: string;
+                    created_by: string;
+                },
+                {
+                    error?: string;
+                }
+            >({
+                path: `/api/users/${userId}`,
+                method: "GET",
+                secure: true,
+                format: "json",
+                ...params,
+            }),
+
+        /**
+         * No description
+         *
+         * @tags users
+         * @name PutUserid
+         * @request PUT:/api/users/{userId}
+         * @secure
+         */
+        putUserid: (
+            userId: string,
+            data: {
+                /**
+                 * @minLength 1
+                 * @maxLength 128
+                 */
+                name?: string;
+                /**
+                 * @format email
+                 * @maxLength 128
+                 */
+                email?: string;
+                /** @maxLength 128 */
+                phone?: string;
+                /** @maxLength 256 */
+                address?: string;
+                /** @maxLength 128 */
+                city?: string;
+                preferences?: object;
+            },
+            params: RequestParams = {},
+        ) =>
+            this.request<
+                {
+                    id: string;
+                    name: string;
+                    email: string;
+                    phone?: string | null;
+                    address?: string | null;
+                    city?: string | null;
+                    preferences: object;
+                    /** @format date-time */
+                    created_at: string;
+                    /** @format date-time */
+                    updated_at: string;
+                    created_by: string;
+                },
+                {
+                    error?: string;
+                }
+            >({
+                path: `/api/users/${userId}`,
+                method: "PUT",
+                body: data,
+                secure: true,
+                type: ContentType.Json,
+                format: "json",
+                ...params,
+            }),
+
+        /**
+         * No description
+         *
+         * @tags users
+         * @name DeleteUserid
+         * @request DELETE:/api/users/{userId}
+         * @secure
+         */
+        deleteUserid: (userId: string, params: RequestParams = {}) =>
+            this.request<
+                void,
+                {
+                    error?: string;
+                }
+            >({
+                path: `/api/users/${userId}`,
+                method: "DELETE",
+                secure: true,
+                ...params,
+            }),
+
+        /**
+         * No description
+         *
+         * @tags users
+         * @name PutUseridRole
+         * @request PUT:/api/users/{userId}/role
+         * @secure
+         */
+        putUseridRole: (
+            userId: string,
+            data: {
+                /** @format uuid */
+                role_id: string;
+            },
+            params: RequestParams = {},
+        ) =>
+            this.request<
+                {
+                    user_id?: string;
+                    role_id?: string;
+                    /** @format date-time */
+                    assigned_at?: string;
+                },
+                {
+                    error?: string;
+                }
+            >({
+                path: `/api/users/${userId}/role`,
+                method: "PUT",
+                body: data,
+                secure: true,
+                type: ContentType.Json,
+                format: "json",
+                ...params,
+            }),
+
+        /**
+         * No description
+         *
+         * @tags users
+         * @name DeleteUseridRole
+         * @request DELETE:/api/users/{userId}/role
+         * @secure
+         */
+        deleteUseridRole: (userId: string, params: RequestParams = {}) =>
+            this.request<
+                void,
+                {
+                    error?: string;
+                }
+            >({
+                path: `/api/users/${userId}/role`,
+                method: "DELETE",
+                secure: true,
+                ...params,
+            }),
+
+        /**
+         * No description
+         *
+         * @tags users
+         * @name PutUseridGroup
+         * @request PUT:/api/users/{userId}/group
+         * @secure
+         */
+        putUseridGroup: (
+            userId: string,
+            data: {
+                /** @format uuid */
+                group_id: string;
+                /** @maxLength 256 */
+                description?: string;
+            },
+            params: RequestParams = {},
+        ) =>
+            this.request<
+                {
+                    user_id?: string;
+                    group_id?: string;
+                    /** @format date-time */
+                    assigned_at?: string;
+                },
+                {
+                    error?: string;
+                }
+            >({
+                path: `/api/users/${userId}/group`,
+                method: "PUT",
+                body: data,
+                secure: true,
+                type: ContentType.Json,
+                format: "json",
+                ...params,
+            }),
+
+        /**
+         * No description
+         *
+         * @tags users
+         * @name DeleteUseridGroupGroupid
+         * @request DELETE:/api/users/{userId}/group/{groupId}
+         * @secure
+         */
+        deleteUseridGroupGroupid: (userId: string, groupId: string, params: RequestParams = {}) =>
+            this.request<
+                void,
+                {
+                    error?: string;
+                }
+            >({
+                path: `/api/users/${userId}/group/${groupId}`,
+                method: "DELETE",
+                secure: true,
+                ...params,
+            }),
+
+        /**
+         * No description
+         *
+         * @tags users
+         * @name GetUseridAssignments
+         * @request GET:/api/users/{userId}/assignments
+         * @secure
+         */
+        getUseridAssignments: (userId: string, params: RequestParams = {}) =>
+            this.request<
+                {
+                    user_id?: string;
+                    role_id?: string | null;
+                    role_name?: string | null;
+                    groups?: {
+                        group_id?: string;
+                        group_name?: string;
+                        /** @format date-time */
+                        assigned_at?: string;
+                    }[];
+                },
+                {
+                    error?: string;
+                }
+            >({
+                path: `/api/users/${userId}/assignments`,
+                method: "GET",
+                secure: true,
+                format: "json",
+                ...params,
+            }),
+    };
+    roles = {
+        /**
+         * No description
+         *
+         * @tags roles
+         * @name Get
+         * @request GET:/api/roles
+         * @secure
+         */
+        get: (
+            query?: {
+                search?: string;
+                /**
+                 * @min 1
+                 * @max 100
+                 * @default 50
+                 */
+                limit?: number;
+                /** @default false */
+                hierarchy?: boolean;
+            },
+            params: RequestParams = {},
+        ) =>
+            this.request<
+                | {
+                      id: string;
+                      name: string;
+                      slug: string;
+                      description: string;
+                      parent_role_id?: string | null;
+                      /** @format date-time */
+                      created_at: string;
+                      /** @format date-time */
+                      updated_at: string;
+                  }[]
+                | {
+                      id: string;
+                      name: string;
+                      slug: string;
+                      description: string;
+                      parent_role_id?: string | null;
+                      /** @format date-time */
+                      created_at: string;
+                      /** @format date-time */
+                      updated_at: string;
+                      children?: {
+                          id: string;
+                          name: string;
+                          slug: string;
+                          description: string;
+                          parent_role_id?: string | null;
+                          /** @format date-time */
+                          created_at: string;
+                          /** @format date-time */
+                          updated_at: string;
+                      }[];
+                      parent?: {
+                          id: string;
+                          name: string;
+                          slug: string;
+                          description: string;
+                          parent_role_id?: string | null;
+                          /** @format date-time */
+                          created_at: string;
+                          /** @format date-time */
+                          updated_at: string;
+                      };
+                  }[],
+                any
+            >({
+                path: `/api/roles`,
+                method: "GET",
+                query: query,
+                secure: true,
+                format: "json",
+                ...params,
+            }),
+
+        /**
+         * No description
+         *
+         * @tags roles
+         * @name Post
+         * @request POST:/api/roles
+         * @secure
+         */
+        post: (
+            data: {
+                /**
+                 * @minLength 1
+                 * @maxLength 128
+                 */
+                name: string;
+                /**
+                 * @minLength 1
+                 * @maxLength 128
+                 * @pattern ^[a-z0-9-_]+$
+                 */
+                slug: string;
+                /**
+                 * @minLength 1
+                 * @maxLength 256
+                 */
+                description: string;
+                /** @format uuid */
+                parent_role_id?: string;
+            },
+            params: RequestParams = {},
+        ) =>
+            this.request<
+                {
+                    id: string;
+                    name: string;
+                    slug: string;
+                    description: string;
+                    parent_role_id?: string | null;
+                    /** @format date-time */
+                    created_at: string;
+                    /** @format date-time */
+                    updated_at: string;
+                },
+                {
+                    error?: string;
+                }
+            >({
+                path: `/api/roles`,
+                method: "POST",
+                body: data,
+                secure: true,
+                type: ContentType.Json,
+                format: "json",
+                ...params,
+            }),
+
+        /**
+         * No description
+         *
+         * @tags roles
+         * @name GetRoleid
+         * @request GET:/api/roles/{roleId}
+         * @secure
+         */
+        getRoleid: (roleId: string, params: RequestParams = {}) =>
+            this.request<
+                {
+                    id: string;
+                    name: string;
+                    slug: string;
+                    description: string;
+                    parent_role_id?: string | null;
+                    /** @format date-time */
+                    created_at: string;
+                    /** @format date-time */
+                    updated_at: string;
+                },
+                {
+                    error?: string;
+                }
+            >({
+                path: `/api/roles/${roleId}`,
+                method: "GET",
+                secure: true,
+                format: "json",
+                ...params,
+            }),
+
+        /**
+         * No description
+         *
+         * @tags roles
+         * @name PutRoleid
+         * @request PUT:/api/roles/{roleId}
+         * @secure
+         */
+        putRoleid: (
+            roleId: string,
+            data: {
+                /**
+                 * @minLength 1
+                 * @maxLength 128
+                 */
+                name?: string;
+                /**
+                 * @minLength 1
+                 * @maxLength 128
+                 * @pattern ^[a-z0-9-_]+$
+                 */
+                slug?: string;
+                /**
+                 * @minLength 1
+                 * @maxLength 256
+                 */
+                description?: string;
+                /** @format uuid */
+                parent_role_id?: string;
+            },
+            params: RequestParams = {},
+        ) =>
+            this.request<
+                {
+                    id: string;
+                    name: string;
+                    slug: string;
+                    description: string;
+                    parent_role_id?: string | null;
+                    /** @format date-time */
+                    created_at: string;
+                    /** @format date-time */
+                    updated_at: string;
+                },
+                {
+                    error?: string;
+                }
+            >({
+                path: `/api/roles/${roleId}`,
+                method: "PUT",
+                body: data,
+                secure: true,
+                type: ContentType.Json,
+                format: "json",
+                ...params,
+            }),
+
+        /**
+         * No description
+         *
+         * @tags roles
+         * @name DeleteRoleid
+         * @request DELETE:/api/roles/{roleId}
+         * @secure
+         */
+        deleteRoleid: (roleId: string, params: RequestParams = {}) =>
+            this.request<
+                void,
+                {
+                    error?: string;
+                }
+            >({
+                path: `/api/roles/${roleId}`,
+                method: "DELETE",
+                secure: true,
+                ...params,
+            }),
+
+        /**
+         * No description
+         *
+         * @tags roles
+         * @name GetRoleidDescendants
+         * @request GET:/api/roles/{roleId}/descendants
+         * @secure
+         */
+        getRoleidDescendants: (roleId: string, params: RequestParams = {}) =>
+            this.request<
+                {
+                    id: string;
+                    name: string;
+                    slug: string;
+                    description: string;
+                    parent_role_id?: string | null;
+                    /** @format date-time */
+                    created_at: string;
+                    /** @format date-time */
+                    updated_at: string;
+                }[],
+                {
+                    error?: string;
+                }
+            >({
+                path: `/api/roles/${roleId}/descendants`,
+                method: "GET",
+                secure: true,
+                format: "json",
+                ...params,
+            }),
+    };
+    groups = {
+        /**
+         * No description
+         *
+         * @tags groups
+         * @name Get
+         * @request GET:/api/groups
+         * @secure
+         */
+        get: (
+            query?: {
+                search?: string;
+                /**
+                 * @min 1
+                 * @max 100
+                 * @default 50
+                 */
+                limit?: number;
+                /** @default false */
+                with_members?: boolean;
+            },
+            params: RequestParams = {},
+        ) =>
+            this.request<
+                | {
+                      id: string;
+                      name: string;
+                      slug: string;
+                      description: string;
+                      /** @format date-time */
+                      created_at: string;
+                      /** @format date-time */
+                      updated_at: string;
+                      auto_join: boolean;
+                      auto_join_rule: object;
+                  }[]
+                | {
+                      id: string;
+                      name: string;
+                      slug: string;
+                      description: string;
+                      /** @format date-time */
+                      created_at: string;
+                      /** @format date-time */
+                      updated_at: string;
+                      auto_join: boolean;
+                      auto_join_rule: object;
+                      member_count: number;
+                  }[],
+                any
+            >({
+                path: `/api/groups`,
+                method: "GET",
+                query: query,
+                secure: true,
+                format: "json",
+                ...params,
+            }),
+
+        /**
+         * No description
+         *
+         * @tags groups
+         * @name Post
+         * @request POST:/api/groups
+         * @secure
+         */
+        post: (
+            data: {
+                /**
+                 * @minLength 1
+                 * @maxLength 128
+                 */
+                name: string;
+                /**
+                 * @minLength 1
+                 * @maxLength 128
+                 * @pattern ^[a-z0-9-_]+$
+                 */
+                slug: string;
+                /**
+                 * @minLength 1
+                 * @maxLength 256
+                 */
+                description: string;
+                auto_join?: boolean;
+                auto_join_rule?: object;
+            },
+            params: RequestParams = {},
+        ) =>
+            this.request<
+                {
+                    id: string;
+                    name: string;
+                    slug: string;
+                    description: string;
+                    /** @format date-time */
+                    created_at: string;
+                    /** @format date-time */
+                    updated_at: string;
+                    auto_join: boolean;
+                    auto_join_rule: object;
+                },
+                {
+                    error?: string;
+                }
+            >({
+                path: `/api/groups`,
+                method: "POST",
+                body: data,
+                secure: true,
+                type: ContentType.Json,
+                format: "json",
+                ...params,
+            }),
+
+        /**
+         * No description
+         *
+         * @tags groups
+         * @name GetGroupid
+         * @request GET:/api/groups/{groupId}
+         * @secure
+         */
+        getGroupid: (groupId: string, params: RequestParams = {}) =>
+            this.request<
+                {
+                    id: string;
+                    name: string;
+                    slug: string;
+                    description: string;
+                    /** @format date-time */
+                    created_at: string;
+                    /** @format date-time */
+                    updated_at: string;
+                    auto_join: boolean;
+                    auto_join_rule: object;
+                },
+                {
+                    error?: string;
+                }
+            >({
+                path: `/api/groups/${groupId}`,
+                method: "GET",
+                secure: true,
+                format: "json",
+                ...params,
+            }),
+
+        /**
+         * No description
+         *
+         * @tags groups
+         * @name PutGroupid
+         * @request PUT:/api/groups/{groupId}
+         * @secure
+         */
+        putGroupid: (
+            groupId: string,
+            data: {
+                /**
+                 * @minLength 1
+                 * @maxLength 128
+                 */
+                name?: string;
+                /**
+                 * @minLength 1
+                 * @maxLength 128
+                 * @pattern ^[a-z0-9-_]+$
+                 */
+                slug?: string;
+                /**
+                 * @minLength 1
+                 * @maxLength 256
+                 */
+                description?: string;
+                auto_join?: boolean;
+                auto_join_rule?: object;
+            },
+            params: RequestParams = {},
+        ) =>
+            this.request<
+                {
+                    id: string;
+                    name: string;
+                    slug: string;
+                    description: string;
+                    /** @format date-time */
+                    created_at: string;
+                    /** @format date-time */
+                    updated_at: string;
+                    auto_join: boolean;
+                    auto_join_rule: object;
+                },
+                {
+                    error?: string;
+                }
+            >({
+                path: `/api/groups/${groupId}`,
+                method: "PUT",
+                body: data,
+                secure: true,
+                type: ContentType.Json,
+                format: "json",
+                ...params,
+            }),
+
+        /**
+         * No description
+         *
+         * @tags groups
+         * @name DeleteGroupid
+         * @request DELETE:/api/groups/{groupId}
+         * @secure
+         */
+        deleteGroupid: (groupId: string, params: RequestParams = {}) =>
+            this.request<
+                void,
+                {
+                    error?: string;
+                }
+            >({
+                path: `/api/groups/${groupId}`,
+                method: "DELETE",
+                secure: true,
+                ...params,
+            }),
+
+        /**
+         * No description
+         *
+         * @tags groups
+         * @name GetGroupidMembers
+         * @request GET:/api/groups/{groupId}/members
+         * @secure
+         */
+        getGroupidMembers: (groupId: string, params: RequestParams = {}) =>
+            this.request<
+                {
+                    id: string;
+                    user_id: string;
+                    group_id: string;
+                    description?: string | null;
+                    /** @format date-time */
+                    created_at: string;
+                    /** @format date-time */
+                    updated_at: string;
+                }[],
+                {
+                    error?: string;
+                }
+            >({
+                path: `/api/groups/${groupId}/members`,
+                method: "GET",
+                secure: true,
+                format: "json",
+                ...params,
+            }),
+
+        /**
+         * No description
+         *
+         * @tags groups
+         * @name PostGroupidMembers
+         * @request POST:/api/groups/{groupId}/members
+         * @secure
+         */
+        postGroupidMembers: (
+            groupId: string,
+            data: {
+                /** @format uuid */
+                user_id: string;
+                /** @maxLength 256 */
+                description?: string;
+            },
+            params: RequestParams = {},
+        ) =>
+            this.request<
+                {
+                    id: string;
+                    user_id: string;
+                    group_id: string;
+                    description?: string | null;
+                    /** @format date-time */
+                    created_at: string;
+                    /** @format date-time */
+                    updated_at: string;
+                },
+                {
+                    error?: string;
+                }
+            >({
+                path: `/api/groups/${groupId}/members`,
+                method: "POST",
+                body: data,
+                secure: true,
+                type: ContentType.Json,
+                format: "json",
+                ...params,
+            }),
+
+        /**
+         * No description
+         *
+         * @tags groups
+         * @name DeleteGroupidMembersUserid
+         * @request DELETE:/api/groups/{groupId}/members/{userId}
+         * @secure
+         */
+        deleteGroupidMembersUserid: (groupId: string, userId: string, params: RequestParams = {}) =>
+            this.request<
+                void,
+                {
+                    error?: string;
+                }
+            >({
+                path: `/api/groups/${groupId}/members/${userId}`,
+                method: "DELETE",
+                secure: true,
+                ...params,
+            }),
+    };
+    views = {
+        /**
+         * No description
+         *
+         * @tags data-views
+         * @name GetTableSlug
+         * @request GET:/api/views/{table_slug}
+         * @secure
+         */
+        getTableSlug: (
+            tableSlug: string,
+            query?: {
+                search?: string;
+                /**
+                 * @min 1
+                 * @max 100
+                 * @default 50
+                 */
+                limit?: number;
+            },
+            params: RequestParams = {},
+        ) =>
+            this.request<
+                {
+                    id: string;
+                    name: string;
+                    description?: string | null;
+                    table_slug: string;
+                    is_default: boolean;
+                    layout: {
+                        id: string;
+                        label: string;
+                        /**
+                         * @min 1
+                         * @max 24
+                         */
+                        column: number;
+                        /** @min 1 */
+                        row: number;
+                        /**
+                         * @min 1
+                         * @max 24
+                         */
+                        width: number;
+                        /** @min 1 */
+                        height: number;
+                        component: string;
+                        config: object;
+                    }[];
+                    created_by: string;
+                    /** @format date-time */
+                    created_at: string;
+                    /** @format date-time */
+                    updated_at: string;
+                }[],
+                any
+            >({
+                path: `/api/views/${tableSlug}`,
+                method: "GET",
+                query: query,
+                secure: true,
+                format: "json",
+                ...params,
+            }),
+
+        /**
+         * No description
+         *
+         * @tags data-views
+         * @name PostTableSlug
+         * @request POST:/api/views/{table_slug}
+         * @secure
+         */
+        postTableSlug: (
+            tableSlug: string,
+            data: {
+                /**
+                 * @minLength 1
+                 * @maxLength 128
+                 */
+                name: string;
+                /** @maxLength 512 */
+                description?: string;
+                is_default?: boolean;
+                /** @minItems 1 */
+                layout: {
+                    id: string;
+                    label: string;
+                    /**
+                     * @min 1
+                     * @max 24
+                     */
+                    column: number;
+                    /** @min 1 */
+                    row: number;
+                    /**
+                     * @min 1
+                     * @max 24
+                     */
+                    width: number;
+                    /** @min 1 */
+                    height: number;
+                    component: string;
+                    config: object;
+                }[];
+            },
+            params: RequestParams = {},
+        ) =>
+            this.request<
+                {
+                    id: string;
+                    name: string;
+                    description?: string | null;
+                    table_slug: string;
+                    is_default: boolean;
+                    layout: {
+                        id: string;
+                        label: string;
+                        /**
+                         * @min 1
+                         * @max 24
+                         */
+                        column: number;
+                        /** @min 1 */
+                        row: number;
+                        /**
+                         * @min 1
+                         * @max 24
+                         */
+                        width: number;
+                        /** @min 1 */
+                        height: number;
+                        component: string;
+                        config: object;
+                    }[];
+                    created_by: string;
+                    /** @format date-time */
+                    created_at: string;
+                    /** @format date-time */
+                    updated_at: string;
+                },
+                {
+                    error: string;
+                    code?: string;
+                }
+            >({
+                path: `/api/views/${tableSlug}`,
+                method: "POST",
+                body: data,
+                secure: true,
+                type: ContentType.Json,
+                format: "json",
+                ...params,
+            }),
+
+        /**
+         * No description
+         *
+         * @tags data-views
+         * @name GetTableSlugViewId
+         * @request GET:/api/views/{table_slug}/{view_id}
+         * @secure
+         */
+        getTableSlugViewId: (tableSlug: string, viewId: string, params: RequestParams = {}) =>
+            this.request<
+                {
+                    id: string;
+                    name: string;
+                    description?: string | null;
+                    table_slug: string;
+                    is_default: boolean;
+                    layout: {
+                        id: string;
+                        label: string;
+                        /**
+                         * @min 1
+                         * @max 24
+                         */
+                        column: number;
+                        /** @min 1 */
+                        row: number;
+                        /**
+                         * @min 1
+                         * @max 24
+                         */
+                        width: number;
+                        /** @min 1 */
+                        height: number;
+                        component: string;
+                        config: object;
+                    }[];
+                    created_by: string;
+                    /** @format date-time */
+                    created_at: string;
+                    /** @format date-time */
+                    updated_at: string;
+                },
+                {
+                    error: string;
+                    code?: string;
+                }
+            >({
+                path: `/api/views/${tableSlug}/${viewId}`,
+                method: "GET",
+                secure: true,
+                format: "json",
+                ...params,
+            }),
+
+        /**
+         * No description
+         *
+         * @tags data-views
+         * @name PutTableSlugViewId
+         * @request PUT:/api/views/{table_slug}/{view_id}
+         * @secure
+         */
+        putTableSlugViewId: (
+            tableSlug: string,
+            viewId: string,
+            data: {
+                /**
+                 * @minLength 1
+                 * @maxLength 128
+                 */
+                name?: string;
+                /** @maxLength 512 */
+                description?: string;
+                is_default?: boolean;
+                /** @minItems 1 */
+                layout?: {
+                    id: string;
+                    label: string;
+                    /**
+                     * @min 1
+                     * @max 24
+                     */
+                    column: number;
+                    /** @min 1 */
+                    row: number;
+                    /**
+                     * @min 1
+                     * @max 24
+                     */
+                    width: number;
+                    /** @min 1 */
+                    height: number;
+                    component: string;
+                    config: object;
+                }[];
+            },
+            params: RequestParams = {},
+        ) =>
+            this.request<
+                {
+                    id: string;
+                    name: string;
+                    description?: string | null;
+                    table_slug: string;
+                    is_default: boolean;
+                    layout: {
+                        id: string;
+                        label: string;
+                        /**
+                         * @min 1
+                         * @max 24
+                         */
+                        column: number;
+                        /** @min 1 */
+                        row: number;
+                        /**
+                         * @min 1
+                         * @max 24
+                         */
+                        width: number;
+                        /** @min 1 */
+                        height: number;
+                        component: string;
+                        config: object;
+                    }[];
+                    created_by: string;
+                    /** @format date-time */
+                    created_at: string;
+                    /** @format date-time */
+                    updated_at: string;
+                },
+                {
+                    error: string;
+                    code?: string;
+                }
+            >({
+                path: `/api/views/${tableSlug}/${viewId}`,
+                method: "PUT",
+                body: data,
+                secure: true,
+                type: ContentType.Json,
+                format: "json",
+                ...params,
+            }),
+
+        /**
+         * No description
+         *
+         * @tags data-views
+         * @name DeleteTableSlugViewId
+         * @request DELETE:/api/views/{table_slug}/{view_id}
+         * @secure
+         */
+        deleteTableSlugViewId: (tableSlug: string, viewId: string, params: RequestParams = {}) =>
+            this.request<
+                void,
+                {
+                    error: string;
+                    code?: string;
+                }
+            >({
+                path: `/api/views/${tableSlug}/${viewId}`,
+                method: "DELETE",
+                secure: true,
+                ...params,
+            }),
+
+        /**
+         * No description
+         *
+         * @tags data-views
+         * @name PutTableSlugViewIdDefault
+         * @request PUT:/api/views/{table_slug}/{view_id}/default
+         * @secure
+         */
+        putTableSlugViewIdDefault: (tableSlug: string, viewId: string, params: RequestParams = {}) =>
+            this.request<
+                {
+                    id: string;
+                    name: string;
+                    description?: string | null;
+                    table_slug: string;
+                    is_default: boolean;
+                    layout: {
+                        id: string;
+                        label: string;
+                        /**
+                         * @min 1
+                         * @max 24
+                         */
+                        column: number;
+                        /** @min 1 */
+                        row: number;
+                        /**
+                         * @min 1
+                         * @max 24
+                         */
+                        width: number;
+                        /** @min 1 */
+                        height: number;
+                        component: string;
+                        config: object;
+                    }[];
+                    created_by: string;
+                    /** @format date-time */
+                    created_at: string;
+                    /** @format date-time */
+                    updated_at: string;
+                },
+                {
+                    error: string;
+                    code?: string;
+                }
+            >({
+                path: `/api/views/${tableSlug}/${viewId}/default`,
+                method: "PUT",
+                secure: true,
+                format: "json",
+                ...params,
+            }),
+
+        /**
+         * No description
+         *
+         * @tags data-views
+         * @name PostTableSlugViewIdRender
+         * @request POST:/api/views/{table_slug}/{view_id}/render
+         * @secure
+         */
+        postTableSlugViewIdRender: (
+            tableSlug: string,
+            viewId: string,
+            data: {
+                filters?: any[];
+                globalFilters?: any[];
+            },
+            params: RequestParams = {},
+        ) =>
+            this.request<
+                {
+                    view_id?: string;
+                    view_name?: string;
+                    table_slug?: string;
+                    widgets?: {
+                        widget_id?: string;
+                        widget_label?: string;
+                        component?: string;
+                        data?: any;
+                        error?: string | null;
+                    }[];
+                },
+                {
+                    error: string;
+                    code?: string;
+                }
+            >({
+                path: `/api/views/${tableSlug}/${viewId}/render`,
+                method: "POST",
+                body: data,
+                secure: true,
+                type: ContentType.Json,
+                format: "json",
+                ...params,
+            }),
+
+        /**
+         * No description
+         *
+         * @tags data-views
+         * @name PostTableSlugViewIdWidgetsWidgetIdData
+         * @request POST:/api/views/{table_slug}/{view_id}/widgets/{widget_id}/data
+         * @secure
+         */
+        postTableSlugViewIdWidgetsWidgetIdData: (
+            tableSlug: string,
+            viewId: string,
+            widgetId: string,
+            data: {
+                filters?: any[];
+                globalFilters?: any[];
+                widgetOverrides?: object;
+            },
+            params: RequestParams = {},
+        ) =>
+            this.request<
+                {
+                    widget_id?: string;
+                    widget_label?: string;
+                    component?: string;
+                    data?: any;
+                    error?: string | null;
+                },
+                {
+                    error: string;
+                    code?: string;
+                }
+            >({
+                path: `/api/views/${tableSlug}/${viewId}/widgets/${widgetId}/data`,
+                method: "POST",
+                body: data,
+                secure: true,
+                type: ContentType.Json,
+                format: "json",
                 ...params,
             }),
     };

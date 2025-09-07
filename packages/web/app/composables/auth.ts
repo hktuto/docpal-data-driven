@@ -20,19 +20,19 @@ export async function getMe() {
     
     if (response) {
       isAuthenticated.value = true
-      user.value = response.data
+      user.value = response.user
       
       // If this is a new login detection, emit user login event
       if (!authInit.value) {
         emitBus(EventType.USER_LOGIN__SUCCESS, {
           user: {
-            id: response.data?.id || 'unknown',
-            email: response.data?.email || 'unknown',
-            name: response.data?.name,
+            id: response?.user?.id || 'unknown',
+            email: response?.user?.email || 'unknown',
+            name: response?.user?.first_name || response?.user?.last_name ? 
+              `${response?.user?.first_name || ''} ${response?.user?.last_name || ''}`.trim() : undefined,
           },
           timestamp: Date.now(),
-          loginMethod: 'session',
-          sessionId: (response.data as any)?.sessionId
+          loginMethod: 'session'
         })
       }
     }
@@ -42,32 +42,37 @@ export async function getMe() {
     authInit.value = true
   }
 } 
-export async function loginApi(email: string, password: string) {
+export async function loginApi(email: string, password: string, companyId?: string) {
   const isAuthenticated = useIsAuthenticated()
   const user = useUser()
   const authInit = useAuthInit()
   
   try {
-    const response = await apiClient.auth.postLogin({
+    const loginData: any = {
       email,
       password
-    })
+    }
     
-    if (response.data) {
+    // Add companyId if provided (required by current API)
+    if (companyId) {
+      loginData.companyId = companyId
+    }
+    
+    const response = await apiClient.auth.postLogin(loginData)
+    
+    if (response) {
       isAuthenticated.value = true
-      user.value = response.data
+      user.value = response
       authInit.value = true
       
       // Emit user login event
       emitBus(EventType.USER_LOGIN__SUCCESS, {
         user: {
-          id: response.data?.id || 'unknown',
-          email: response.data?.email || email,
-          name: response.data?.name,
+          id: response?.user?.id || 'unknown',
+          email: response?.user?.email || email,
         },
         timestamp: Date.now(),
-        loginMethod: 'email',
-        sessionId: (response.data as any)?.sessionId
+        loginMethod: 'email'
       })
     }
     
@@ -87,8 +92,7 @@ export async function logout(reason: 'manual' | 'timeout' | 'force' | 'token_exp
     emitBus(EventType.USER_LOGIN__EXPIRE, {
       userId: currentUser.id || currentUser.userId || 'unknown',
       timestamp: Date.now(),
-      reason,
-      sessionId: currentUser.sessionId
+      reason
     })
   }
   

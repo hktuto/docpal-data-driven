@@ -36,15 +36,15 @@ const apiCall = async (
   endpoint: string, 
   method: 'GET' | 'POST' | 'PUT' | 'DELETE' = 'GET',
   body?: any,
-  sessionToken?: string
+  sessionId?: string
 ): Promise<{ status: number; data: any; headers: any }> => {
   const url = `${API_BASE_URL}${endpoint}`;
   const headers: any = {
     'Content-Type': 'application/json',
   };
   
-  if (sessionToken) {
-    headers['Cookie'] = `sessionToken=${sessionToken}`;
+  if (sessionId) {
+    headers['Cookie'] = `sessionId=${sessionId}`;
   }
   
   console.log(`\n🔄 ${method} ${endpoint}`);
@@ -77,17 +77,17 @@ const apiCall = async (
 };
 
 // Extract session token from Set-Cookie header
-const extractSessionToken = (headers: any): string | null => {
+const extractsessionId = (headers: any): string | null => {
   const setCookie = headers['set-cookie'];
   if (!setCookie) return null;
   
   const sessionCookie = setCookie.find((cookie: string) => 
-    cookie.startsWith('sessionToken=')
+    cookie.startsWith('sessionId=')
   );
   
   if (!sessionCookie) return null;
   
-  const match = sessionCookie.match(/sessionToken=([^;]+)/);
+  const match = sessionCookie.match(/sessionId=([^;]+)/);
   return match ? match[1] : null;
 };
 
@@ -103,7 +103,7 @@ const testHealthCheck = async (): Promise<void> => {
   }
 };
 
-const testCreateCompany = async (): Promise<{ company: any; user: any; sessionToken: string }> => {
+const testCreateCompany = async (): Promise<{ company: any; user: any; sessionId: string }> => {
   console.log('\n🏢 === CREATE COMPANY WITH ADMIN USER ===');
   
   const requestBody = {
@@ -121,22 +121,22 @@ const testCreateCompany = async (): Promise<{ company: any; user: any; sessionTo
     console.log('✅ Company created successfully');
     console.log(`📋 Company ID: ${result.data.company.id}`);
     console.log(`👤 User ID: ${result.data.user.id}`);
-    console.log(`🔑 Session Token: ${result.data.sessionToken}`);
+    console.log(`🔑 Session Token: ${result.data.sessionId}`);
     
     return {
       company: result.data.company,
       user: result.data.user,
-      sessionToken: result.data.sessionToken
+      sessionId: result.data.sessionId
     };
   } else {
     throw new Error(`❌ Company creation failed: ${result.status} - ${result.data.error}`);
   }
 };
 
-const testGetSession = async (sessionToken: string): Promise<void> => {
+const testGetSession = async (sessionId: string): Promise<void> => {
   console.log('\n🔍 === GET SESSION ===');
   
-  const result = await apiCall('/api/auth/session', 'GET', undefined, sessionToken);
+  const result = await apiCall('/api/auth/session', 'GET', undefined, sessionId);
   
   if (result.status === 200) {
     console.log('✅ Session retrieved successfully');
@@ -147,10 +147,10 @@ const testGetSession = async (sessionToken: string): Promise<void> => {
   }
 };
 
-const testLogout = async (sessionToken: string): Promise<void> => {
+const testLogout = async (sessionId: string): Promise<void> => {
   console.log('\n🚪 === LOGOUT ===');
   
-  const result = await apiCall('/api/auth/logout', 'POST', {}, sessionToken);
+  const result = await apiCall('/api/auth/logout', 'POST', {}, sessionId);
   
   if (result.status === 200) {
     console.log('✅ Logout successful');
@@ -202,25 +202,25 @@ const testLogin = async (companyId?: string): Promise<string> => {
     console.log('✅ Login successful');
     
     // Extract session token from Set-Cookie header
-    const sessionToken = extractSessionToken(result.headers);
-    if (!sessionToken) {
+    const sessionId = extractsessionId(result.headers);
+    if (!sessionId) {
       throw new Error('❌ No session token found in response headers');
     }
     
-    console.log(`🔑 Session Token: ${sessionToken}`);
+    console.log(`🔑 Session Token: ${sessionId}`);
     console.log(`👤 User: ${result.data.user.email}`);
     console.log(`🏢 Company: ${result.data.company?.name || 'None'}`);
     
-    return sessionToken;
+    return sessionId;
   } else {
     throw new Error(`❌ Login failed: ${result.status} - ${result.data.error}`);
   }
 };
 
-const testVerifySessionAfterLogin = async (sessionToken: string): Promise<void> => {
+const testVerifySessionAfterLogin = async (sessionId: string): Promise<void> => {
   console.log('\n✅ === VERIFY SESSION AFTER LOGIN ===');
   
-  const result = await apiCall('/api/auth/session', 'GET', undefined, sessionToken);
+  const result = await apiCall('/api/auth/session', 'GET', undefined, sessionId);
   
   if (result.status === 200) {
     console.log('✅ Session verification successful');
@@ -243,23 +243,23 @@ const runTests = async (): Promise<void> => {
     await testHealthCheck();
     
     // Step 2: Create company with admin user (auto-login)
-    const { company, user, sessionToken: initialSessionToken } = await testCreateCompany();
+    const { company, user, sessionId: initialsessionId } = await testCreateCompany();
     
     // Step 3: Test session after company creation
-    await testGetSession(initialSessionToken);
+    await testGetSession(initialsessionId);
     
     // Step 4: Test logout
-    await testLogout(initialSessionToken);
+    await testLogout(initialsessionId);
     
     // Step 5: Test get user companies (by email/password)
     const companies = await testGetUserCompanies();
     
     // Step 6: Test login with company context
     const companyId = companies.length > 0 ? companies[0].id : undefined;
-    const newSessionToken = await testLogin(companyId);
+    const newsessionId = await testLogin(companyId);
     
     // Step 7: Verify session after login
-    await testVerifySessionAfterLogin(newSessionToken);
+    await testVerifySessionAfterLogin(newsessionId);
     
     console.log('\n🎉 === ALL TESTS PASSED ===');
     console.log('✅ Company creation with admin user');

@@ -1,7 +1,6 @@
 <template>
   <AppPageContainer>
-    <DataViewTableManager ref="dataViewTableManagerRef" tableName="user_profiles" @create-entry="handleCreateEntry" />
-    <NewUserDialog ref="newUserDialogRef" @userCreated="handleUserCreated" />
+    page
   </AppPageContainer>
 </template>
 

@@ -9,7 +9,9 @@ import {
   destroySession,
   getUserCompanies,
   validateSession,
+  validateUserCompanyRelationship,
 } from './auth_service';
+import { query, queryInTenantSchema } from '../../database/utils/database';
 
 /**
  * Fastify JSON Schemas with const assertions for automatic type inference
@@ -69,9 +71,10 @@ const loginSchema = {
     type: 'object',
     properties: {
       email: { type: 'string', format: 'email' },
-      password: { type: 'string', minLength: 1 }
+      password: { type: 'string', minLength: 1 },
+      companyId: { type: 'string', format: 'uuid' }
     },
-    required: ['email', 'password'],
+    required: ['email', 'password', 'companyId'],
     additionalProperties: false
   },
   response: {
@@ -80,14 +83,13 @@ const loginSchema = {
       properties: {
         message: { type: 'string' },
         user: userSchema,
-        companies: {
-          type: 'array',
-          items: companySchema
-        }
+        company: companySchema
       }
     },
     400: errorSchema,
     401: errorSchema,
+    403: errorSchema,
+    404: errorSchema,
     500: errorSchema
   }
 } as const;
@@ -163,8 +165,26 @@ const sessionSchema = {
     200: {
       type: 'object',
       properties: {
-        user: userSchema,
-        company: { ...companySchema, nullable: true }
+        user: {
+          type: 'object',
+          properties: {
+            id: { type: 'string' },
+            email: { type: 'string' },
+            userProfile: { 
+              type: 'object',
+              
+              additionalProperties: true
+             },
+          },
+          additionalProperties: true
+        },
+        company:{
+          type: 'object',
+          properties: {
+            id: { type: 'string' },
+          },
+          additionalProperties: true
+        }
       }
     },
     401: errorSchema,
@@ -181,12 +201,12 @@ export const registerAuthRoutes = async (fastify: FastifyInstance) => {
     schema: loginSchema,
   }, async (request, reply) => {
     try {
-      const { email, password } = request.body as { email: string; password: string };
+      const { email, password, companyId } = request.body as { email: string; password: string; companyId: string };
       
       // Validate input
-      if (!email || !password) {
+      if (!email || !password || !companyId) {
         return reply.status(400).send({
-          error: 'Email and password are required',
+          error: 'Email, password, and companyId are required',
         });
       }
       
@@ -198,79 +218,53 @@ export const registerAuthRoutes = async (fastify: FastifyInstance) => {
         });
       }
       
-      // Get user's companies
-      const companies = await getUserCompanies(user.id);
+      // Validate user-company relationship
+      const isValidRelationship = await validateUserCompanyRelationship(user.id, companyId);
+      if (!isValidRelationship) {
+        return reply.status(403).send({
+          error: 'User does not belong to the specified company',
+        });
+      }
+      
+      // Get company information
+
+      const companyResult = await query(
+        'SELECT id, name FROM company WHERE id = $1 AND status = $2',
+        [companyId, 'active']
+      );
+      
+      if (companyResult.rows.length === 0) {
+        return reply.status(404).send({
+          error: 'Company not found',
+        });
+      }
+      
+      const company = companyResult.rows[0];
       
       // Generate session token
-      const sessionToken = uuidv4();
+      const sessionId = uuidv4();
       
-      if (companies.length === 0) {
-        // User has no companies - they need to create or join one
-        await createSession(sessionToken, user);
-        
-        // Set session cookie
-        reply.setCookie('sessionToken', sessionToken, {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: 'lax',
-          maxAge: 3600, // 1 hour
-        });
-        
-        return reply.status(200).send({
-          user: {
-            id: user.id,
-            email: user.email,
-          },
-          companies: [],
-          requiresCompanySelection: true,
-        });
-      }
-      
-      if (companies.length === 1) {
-        // User has only one company - auto-select it
-        const company = companies[0];
-        await createSession(sessionToken, user, company.id);
-        
-        // Set session cookie
-        reply.setCookie('sessionToken', sessionToken, {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: 'lax',
-          maxAge: 3600, // 1 hour
-        });
-        
-        return reply.status(200).send({
-          user: {
-            id: user.id,
-            email: user.email,
-          },
-          company: {
-            id: company.id,
-            name: company.name,
-          },
-          companies,
-          requiresCompanySelection: false,
-        });
-      }
-      
-      // User has multiple companies - they need to select one
-      await createSession(sessionToken, user);
-      
+      // Create session with company
+      await createSession(sessionId, user, companyId);
+
       // Set session cookie
-      reply.setCookie('sessionToken', sessionToken, {
+      reply.setCookie('sessionId', sessionId, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: 3600, // 1 hour
+        maxAge: 3600 * 7, // 7 hour
+        path: '/',
       });
       
       return reply.status(200).send({
+        message: 'Login successful',
         user: {
           id: user.id,
           email: user.email,
         },
-        companies,
-        requiresCompanySelection: true,
+        company: {
+          id: company.id,
+          name: company.name,
+        },
       });
       
     } catch (error: any) {
@@ -367,14 +361,14 @@ export const registerAuthRoutes = async (fastify: FastifyInstance) => {
     schema: logoutSchema,
   }, async (request, reply) => {
     try {
-      const sessionToken = request.cookies.sessionToken;
-      if (sessionToken) {
-        const session = await validateSession(sessionToken);
-        await destroySession(sessionToken, session?.userId);
+      const sessionId = request.cookies.sessionId;
+      if (sessionId) {
+        const session = await validateSession(sessionId);
+        await destroySession(sessionId, session?.userId);
       }
       
       // Clear session cookie
-      reply.clearCookie('sessionToken');
+      reply.clearCookie('sessionId');
       
       return reply.status(200).send({
         message: 'Logged out successfully',
@@ -393,33 +387,41 @@ export const registerAuthRoutes = async (fastify: FastifyInstance) => {
     schema: sessionSchema,
   }, async (request, reply) => {
     try {
-      const sessionToken = request.cookies.sessionToken;
-      if (!sessionToken) {
+      const sessionId = request.cookies.sessionId;
+      console.log('-----------sessionId in get session', sessionId);
+      if (!sessionId) {
         return reply.status(401).send({
           error: 'No session found',
         });
       }
       
       // Validate session
-      const session = await validateSession(sessionToken);
+      const session = await validateSession(sessionId);
       if (!session) {
         return reply.status(401).send({
           error: 'Invalid or expired session',
         });
       }
+      if (!session.companyId) {
+        return reply.status(401).send({
+          error: 'No company found',
+        });
+      }
       
       // Get user's companies
-      const companies = await getUserCompanies(session.userId);
+      const company = await query('SELECT * FROM company WHERE id = $1 ', [session.companyId]);
+      const userProfile = await queryInTenantSchema(session.companyId, 'SELECT * FROM user_profile WHERE id = $1', [session.userId]);
       
-      return reply.status(200).send({
+      const result = {
         user: {
           id: session.userId,
           email: session.email,
+          userProfile: userProfile.rows[0],
         },
-        companyId: session.companyId,
-        companies,
+        company: company.rows[0],
         loginTime: session.loginTime,
-      });
+      }
+      return reply.status(200).send(result);
       
     } catch (error: any) {
       request.log.error('Session info error: ' + (error.message || String(error)));

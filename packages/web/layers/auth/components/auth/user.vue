@@ -54,7 +54,7 @@ function openSetting(){
     <div class="userMenuWidgetContainer">
         <AppLogo />
         <div v-if="user" class="username">
-            {{ user.name }}
+            {{ user.userProfile.name }}
         </div>
         <div class="actions">
             <!-- TODO: upgrade UploadStructureButton to use new upload structure -->

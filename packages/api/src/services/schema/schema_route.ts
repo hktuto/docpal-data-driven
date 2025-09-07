@@ -161,7 +161,7 @@ export const registerSchemaRoutes = async (fastify: FastifyInstance) => {
      * GET /api/schemas
      * List all schemas for the current company
      */
-    fastify.get('/schemas', {
+    fastify.get('', {
       schema: {
         tags: ['Schema'],
         summary: 'List all schemas',
@@ -193,7 +193,7 @@ export const registerSchemaRoutes = async (fastify: FastifyInstance) => {
      * POST /api/schemas
      * Create a new schema
      */
-    fastify.post('/schemas', {
+    fastify.post('', {
       schema: {
         ...createSchemaSchema,
         tags: ['Schema'],
@@ -238,7 +238,7 @@ export const registerSchemaRoutes = async (fastify: FastifyInstance) => {
      * GET /api/schemas/:table_slug
      * Get a specific schema by slug
      */
-    fastify.get('/schemas/:table_slug', {
+    fastify.get('/:table_slug', {
       schema: {
         ...schemaParamsSchema,
         tags: ['Schema'],
@@ -277,7 +277,7 @@ export const registerSchemaRoutes = async (fastify: FastifyInstance) => {
      * PUT /api/schemas/:table_slug
      * Update an existing schema
      */
-    fastify.put('/schemas/:table_slug', {
+    fastify.put('/:table_slug', {
       schema: {
         ...updateSchemaSchema,
         ...schemaParamsSchema,
@@ -325,7 +325,7 @@ export const registerSchemaRoutes = async (fastify: FastifyInstance) => {
      * DELETE /api/schemas/:table_slug
      * Delete a schema and its database table
      */
-    fastify.delete('/schemas/:table_slug', {
+    fastify.delete('/:table_slug', {
       schema: {
         ...schemaParamsSchema,
         tags: ['Schema'],
@@ -373,7 +373,7 @@ export const registerSchemaRoutes = async (fastify: FastifyInstance) => {
      * GET /api/schemas/:table_slug/events
      * Get event configuration for a table
      */
-    fastify.get('/schemas/:table_slug/events', {
+    fastify.get('/:table_slug/events', {
       schema: {
         ...schemaParamsSchema,
         tags: ['Schema Events'],
@@ -415,7 +415,7 @@ export const registerSchemaRoutes = async (fastify: FastifyInstance) => {
      * PUT /api/schemas/:table_slug/events
      * Update event configuration for a table
      */
-    fastify.put('/schemas/:table_slug/events', {
+    fastify.put('/:table_slug/events', {
       schema: {
         ...schemaParamsSchema,
         body: {
@@ -481,7 +481,7 @@ export const registerSchemaRoutes = async (fastify: FastifyInstance) => {
      * DELETE /api/schemas/:table_slug/events
      * Remove event configuration for a table
      */
-    fastify.delete('/schemas/:table_slug/events', {
+    fastify.delete('/:table_slug/events', {
       schema: {
         ...schemaParamsSchema,
         tags: ['Schema Events'],
@@ -523,7 +523,7 @@ export const registerSchemaRoutes = async (fastify: FastifyInstance) => {
      * GET /api/schemas/events
      * Get all tables with event configurations
      */
-    fastify.get('/schemas/events', {
+    fastify.get('/events', {
       schema: {
         tags: ['Schema Events'],
         summary: 'List tables with event configurations',

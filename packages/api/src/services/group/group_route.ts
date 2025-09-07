@@ -17,6 +17,7 @@ import {
   CreateGroupData,
   UpdateGroupData
 } from './group_service';
+import { requireAuth, requireCompany } from '../auth/auth_middleware';
 
 // Schemas
 const groupSchema = {
@@ -192,7 +193,7 @@ export const registerGroupRoutes = async (fastify: FastifyInstance) => {
   // GET /api/groups - List all groups
   fastify.get('/groups', {
     schema: getGroupsSchema,
-    preHandler: [fastify.authenticate, fastify.requireCompany]
+    preHandler: [requireAuth, requireCompany]
   }, async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       const { companyId } = request as any;
@@ -221,7 +222,7 @@ export const registerGroupRoutes = async (fastify: FastifyInstance) => {
   // POST /api/groups - Create new group
   fastify.post('/groups', {
     schema: createGroupSchema,
-    preHandler: [fastify.authenticate, fastify.requireCompany]
+    preHandler: [requireAuth, requireCompany]
   }, async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       const { companyId } = request as any;
@@ -242,7 +243,7 @@ export const registerGroupRoutes = async (fastify: FastifyInstance) => {
   // GET /api/groups/:groupId - Get group by ID
   fastify.get('/groups/:groupId', {
     schema: getGroupSchema,
-    preHandler: [fastify.authenticate, fastify.requireCompany]
+    preHandler: [requireAuth, requireCompany]
   }, async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       const { companyId } = request as any;
@@ -264,7 +265,7 @@ export const registerGroupRoutes = async (fastify: FastifyInstance) => {
   // PUT /api/groups/:groupId - Update group
   fastify.put('/groups/:groupId', {
     schema: updateGroupSchema,
-    preHandler: [fastify.authenticate, fastify.requireCompany]
+    preHandler: [requireAuth, requireCompany]
   }, async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       const { companyId } = request as any;
@@ -290,23 +291,26 @@ export const registerGroupRoutes = async (fastify: FastifyInstance) => {
 
   // DELETE /api/groups/:groupId - Delete group
   fastify.delete('/groups/:groupId', {
-    tags: ['groups'],
-    response: {
-      204: { type: 'null' },
-      400: {
-        type: 'object',
-        properties: {
-          error: { type: 'string' }
-        }
-      },
-      404: {
-        type: 'object',
-        properties: {
-          error: { type: 'string' }
+    schema:{
+
+      tags: ['groups'],
+      response: {
+        204: { type: 'null' },
+        400: {
+          type: 'object',
+          properties: {
+            error: { type: 'string' }
+          }
+        },
+        404: {
+          type: 'object',
+          properties: {
+            error: { type: 'string' }
+          }
         }
       }
     },
-    preHandler: [fastify.authenticate, fastify.requireCompany]
+    preHandler: [requireAuth, requireCompany]
   }, async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       const { companyId } = request as any;
@@ -331,20 +335,22 @@ export const registerGroupRoutes = async (fastify: FastifyInstance) => {
 
   // GET /api/groups/:groupId/members - Get group members
   fastify.get('/groups/:groupId/members', {
-    tags: ['groups'],
-    response: {
-      200: {
-        type: 'array',
-        items: groupMemberSchema
-      },
-      404: {
-        type: 'object',
-        properties: {
-          error: { type: 'string' }
+    schema:{
+      tags: ['groups'],
+      response: {
+        200: {
+          type: 'array',
+          items: groupMemberSchema
+        },
+        404: {
+          type: 'object',
+          properties: {
+            error: { type: 'string' }
+          }
         }
-      }
+      },
     },
-    preHandler: [fastify.authenticate, fastify.requireCompany]
+    preHandler: [requireAuth, requireCompany]
   }, async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       const { companyId } = request as any;
@@ -368,7 +374,7 @@ export const registerGroupRoutes = async (fastify: FastifyInstance) => {
   // POST /api/groups/:groupId/members - Add user to group
   fastify.post('/groups/:groupId/members', {
     schema: addUserToGroupSchema,
-    preHandler: [fastify.authenticate, fastify.requireCompany]
+    preHandler: [requireAuth, requireCompany]
   }, async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       const { companyId } = request as any;
@@ -394,23 +400,25 @@ export const registerGroupRoutes = async (fastify: FastifyInstance) => {
 
   // DELETE /api/groups/:groupId/members/:userId - Remove user from group
   fastify.delete('/groups/:groupId/members/:userId', {
-    tags: ['groups'],
-    response: {
-      204: { type: 'null' },
-      400: {
-        type: 'object',
-        properties: {
-          error: { type: 'string' }
+    schema:{
+      tags: ['groups'],
+      response: {
+        204: { type: 'null' },
+        400: {
+          type: 'object',
+          properties: {
+            error: { type: 'string' }
+          }
+        },
+        404: {
+          type: 'object',
+          properties: {
+            error: { type: 'string' }
+          }
         }
       },
-      404: {
-        type: 'object',
-        properties: {
-          error: { type: 'string' }
-        }
-      }
     },
-    preHandler: [fastify.authenticate, fastify.requireCompany]
+    preHandler: [requireAuth, requireCompany]
   }, async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       const { companyId } = request as any;

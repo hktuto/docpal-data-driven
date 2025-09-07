@@ -1,6 +1,6 @@
 <template>
   <AppPageContainer>
-    <DataViewTableManager tableName="roles" />
+    role
   </AppPageContainer>
 </template>
 

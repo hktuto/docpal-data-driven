@@ -154,10 +154,22 @@ export const getUserCompanies = async (userId: string) => {
 };
 
 /**
+ * Validate if user belongs to a specific company
+ */
+export const validateUserCompanyRelationship = async (userId: string, companyId: string): Promise<boolean> => {
+  const result = await query(`
+    SELECT 1 FROM company_user 
+    WHERE user_id = $1 AND company_id = $2
+  `, [userId, companyId]);
+  
+  return result.rows.length > 0;
+};
+
+/**
  * Create session for user
  */
 export const createSession = async (
-  sessionToken: string,
+  sessionId: string,
   user: User,
   companyId?: string
 ): Promise<void> => {
@@ -169,7 +181,7 @@ export const createSession = async (
   };
   
   // Store in Valkey with TTL
-  await setSession(sessionToken, sessionData, 3600); // 1 hour
+  await setSession(sessionId, sessionData, 3600 * 7); // 7 hour
   
   // Store in database for tracking
   await withTransaction(async (client) => {
@@ -186,8 +198,8 @@ export const createSession = async (
         uuidv4(),
         user.id,
         companyId || null,
-        sessionToken,
-        new Date(Date.now() + 3600 * 1000), // 1 hour from now
+        sessionId,
+        new Date(Date.now() + 3600 * 7 * 1000), // 7 hour from now
       ]
     );
     
@@ -196,21 +208,22 @@ export const createSession = async (
       'INSERT INTO audit (id, action, data, company_id) VALUES ($1, $2, $3, $4)',
       [uuidv4(), 'user_login', { userId: user.id, companyId }, companyId || null]
     );
+    console.log('-----------session created', sessionId);
   });
 };
 
 /**
  * Destroy session
  */
-export const destroySession = async (sessionToken: string, userId?: string): Promise<void> => {
+export const destroySession = async (sessionId: string, userId?: string): Promise<void> => {
   // Remove from Valkey
-  await deleteSession(sessionToken);
+  await deleteSession(sessionId);
   
   // Remove from database
   await withTransaction(async (client) => {
     await client.query(
       'DELETE FROM session WHERE session_token = $1',
-      [sessionToken]
+      [sessionId]
     );
     
     // Log audit event if we have userId
@@ -226,18 +239,20 @@ export const destroySession = async (sessionToken: string, userId?: string): Pro
 /**
  * Validate and refresh session
  */
-export const validateSession = async (sessionToken: string): Promise<SessionData | null> => {
+export const validateSession = async (sessionId: string): Promise<SessionData | null> => {
   // Check database first
   const result = await query(
     'SELECT user_id, company_id, expires_at FROM session WHERE session_token = $1',
-    [sessionToken]
+    [sessionId]
   );
-  
+  console.log('-----------sessionId', sessionId);
   const sessionRecord = result.rows[0];
+  console.log('-----------sessionRecord', sessionRecord);
   if (!sessionRecord || new Date() > sessionRecord.expires_at) {
+    console.log('-----------sessionRecord expired');
     // Session expired or doesn't exist
     if (sessionRecord) {
-      await destroySession(sessionToken);
+      await destroySession(sessionId);
     }
     return null;
   }
@@ -245,14 +260,14 @@ export const validateSession = async (sessionToken: string): Promise<SessionData
   // Get user data
   const user = await findUserById(sessionRecord.user_id);
   if (!user) {
-    await destroySession(sessionToken);
+    await destroySession(sessionId);
     return null;
   }
 
   const company = await query('SELECT openfga_store_id FROM company WHERE id = $1', [sessionRecord.company_id]);
 
   if(!company.rows[0].openfga_store_id) {
-    await destroySession(sessionToken);
+    await destroySession(sessionId);
     return null;
   }
   // Return session data

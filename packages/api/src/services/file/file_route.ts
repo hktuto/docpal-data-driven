@@ -12,41 +12,82 @@ import {
   FileUploadData
 } from './file_service';
 
+const errorSchema = {
+  type: 'object',
+  properties: {
+    error: { type: 'string' },
+    code: { type: 'string' }
+  },
+  required: ['error']
+} as const;
+
 // Schema definitions for validation
 const fileUploadSchema = {
+  tags: ['files'],
+  description: 'Upload a file and associate it with a table record',
   consumes: ['multipart/form-data'],
-  body: {
-    type: 'object',
-    properties: {
-      file: {
-        type: 'object',
-        properties: {
-          filename: { type: 'string' },
-          mimetype: { type: 'string' },
-          data: { type: 'string', format: 'binary' }
-        }
+  response:{
+    201: {
+      type: 'object',
+      properties: {
+        filePath: { type: 'string' },
+        metadata: { type: 'object' },
+        message: { type: 'string' }
       },
-      table: { type: 'string', minLength: 1, maxLength: 128 },
-      column: { type: 'string', minLength: 1, maxLength: 128 },
-      row: { type: 'string', format: 'uuid' },
-      metadataField: { type: 'string', maxLength: 128 },
-      additionalData: { type: 'object' }
+      additionalProperties: true,
     },
-    required: ['file', 'table', 'column', 'row']
+    400: errorSchema,
+    401: errorSchema,
+    403: errorSchema,
+    500: errorSchema
   }
+  // body: {
+  //   type: 'object',
+  //   properties: {
+  //     file: {
+  //       type: 'object',
+  //       properties: {
+  //         filename: { type: 'string' },
+  //         mimetype: { type: 'string' },
+  //         data: { type: 'string', format: 'binary' }
+  //       }
+  //     },
+  //     table: { type: 'string', minLength: 1, maxLength: 128 },
+  //     column: { type: 'string', minLength: 1, maxLength: 128 },
+  //     row: { type: 'string', format: 'uuid' },
+  //     metadataField: { type: 'string', maxLength: 128 },
+  //     additionalData: { type: 'object' }
+  //   },
+  //   required: ['file', 'table', 'column', 'row']
+  // }
 } as const;
 
 const fileParamsSchema = {
+  tags: ['files'],
+  description: 'Get file by ID for download or display',
   params: {
     type: 'object',
     properties: {
       fileId: { type: 'string', minLength: 1 }
     },
     required: ['fileId']
+  },
+  response: {
+    200: {
+      type: 'object',
+      properties: {
+        stream: { type: 'string', format: 'binary' },
+        metadata: { type: 'object' }
+      }
+    },
+    404: errorSchema,
+    500: errorSchema
   }
 } as const;
 
 const fileDeleteSchema = {
+  tags: ['files'],
+  description: 'Delete a file and remove its reference from table records',
   params: {
     type: 'object',
     properties: {
@@ -58,10 +99,50 @@ const fileDeleteSchema = {
     type: 'object',
     properties: {
       table: { type: 'string', maxLength: 128 },
-      column: { type: 'string', maxLength: 128 },
+      column: { 
+        type: 'string', 
+        maxLength: 128,
+        description: 'Column name or nested JSONB path using dot notation (e.g., "file_path" or "metadata.files.primary")'
+      },
       row: { type: 'string', format: 'uuid' },
-      metadataField: { type: 'string', maxLength: 128 }
+      metadataField: { 
+        type: 'string', 
+        maxLength: 128,
+        description: 'Optional metadata field name or nested JSONB path using dot notation'
+      }
     }
+  },
+  response: {
+    200: {
+      type: 'object',
+      properties: {
+        message: { type: 'string' }
+      }
+    },
+    404: errorSchema,
+    500: errorSchema
+  }
+} as const;
+
+const fileReferencesSchema = {
+  tags: ['files'],
+  description: 'Find all references to a file across table records',
+  params: {
+    type: 'object',
+    properties: {
+      fileId: { type: 'string', minLength: 1 }
+    },
+    required: ['fileId']
+  },
+  response: {
+    200: {
+      type: 'object',
+      properties: {
+        references: { type: 'array', items: { type: 'object' } }
+      }
+    },
+    404: errorSchema,
+    500: errorSchema
   }
 } as const;
 
@@ -71,7 +152,9 @@ const fileDeleteSchema = {
 export const registerFileRoutes = async (fastify: FastifyInstance) => {
   
   // Upload file and update table
+  // Supports nested JSONB fields using dot notation (e.g., "metadata.files.primary")
   fastify.post('/files/upload', {
+    schema: fileUploadSchema,
     preHandler: [requireAuth, requireCompany],
   }, async (request, reply) => {
     try {
@@ -92,8 +175,8 @@ export const registerFileRoutes = async (fastify: FastifyInstance) => {
       const table = body.table.value;
       const column = body.column.value;
       const row = body.row.value;
-      const metadataField = body.metadataField.value;
-      const additionalData = body.additionalData.value
+      const metadataField = body.metadataField ? body.metadataField.value : null;
+      const additionalData = body.additionalData ? body.additionalData.value : null;
       
       if (!fileBuffer) {
         return reply.status(400).send({ error: 'File buffer not found' });
@@ -113,6 +196,7 @@ export const registerFileRoutes = async (fastify: FastifyInstance) => {
       };
       
       const result = await uploadFileToTable(companyId, userId, uploadData);
+      console.log('-----------uploadFileToTable result', result);
       return reply.status(201).send({
         filePath: result.filePath,
         metadata: result.metadata,
@@ -197,7 +281,7 @@ export const registerFileRoutes = async (fastify: FastifyInstance) => {
 
   // Helper endpoint: Find where a file is referenced (useful for cleanup)
   fastify.get('/files/:fileId/references', {
-    schema: fileParamsSchema,
+    schema: fileReferencesSchema,
     preHandler: [requireAuth, requireCompany],
   }, async (request: FastifyRequest, reply: FastifyReply) => {
     try {

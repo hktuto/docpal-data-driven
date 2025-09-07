@@ -172,10 +172,10 @@ const testFileUpload = async () => {
   // Update session cookie if a new one was set
   const setCookieHeader = response.headers['set-cookie'];
   if (setCookieHeader && setCookieHeader.length > 0) {
-    // Find the sessionToken cookie specifically
-    const sessionTokenCookie = setCookieHeader.find(cookie => cookie.startsWith('sessionToken='));
-    if (sessionTokenCookie) {
-      sessionCookie = sessionTokenCookie.split(';')[0];
+    // Find the sessionId cookie specifically
+    const sessionIdCookie = setCookieHeader.find(cookie => cookie.startsWith('sessionId='));
+    if (sessionIdCookie) {
+      sessionCookie = sessionIdCookie.split(';')[0];
       console.log('Updated session cookie:', sessionCookie);
     }
   }

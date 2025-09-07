@@ -127,7 +127,7 @@ export const createCompanyWithAdmin = async (
 ): Promise<{
   company: Company;
   user: any;
-  sessionToken: string;
+  sessionId: string;
 }> => {
   return await withTransaction(async (client) => {
     const { admin, ...companyData } = registrationData;
@@ -189,8 +189,8 @@ export const createCompanyWithAdmin = async (
     );
     
     // 6. Create session token
-    const sessionToken = uuidv4();
-    await createSession(sessionToken, user, company.id);
+    const sessionId = uuidv4();
+    await createSession(sessionId, user, company.id);
     
     return {
       company,
@@ -201,7 +201,7 @@ export const createCompanyWithAdmin = async (
         updated_at: user.updated_at,
         isNewUser,
       },
-      sessionToken,
+      sessionId,
     };
   });
 };

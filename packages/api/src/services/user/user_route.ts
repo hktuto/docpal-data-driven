@@ -22,6 +22,7 @@ import {
   getUserWithAssignments,
   getUsersWithAssignments
 } from './user-assignment-service';
+import { requireAuth, requireCompany } from '../auth/auth_middleware';
 
 // Schemas
 const userProfileSchema = {
@@ -231,7 +232,7 @@ export const registerUserRoutes = async (fastify: FastifyInstance) => {
   // GET /api/users - List all user profiles
   fastify.get('/users', {
     schema: getUserProfilesSchema,
-    preHandler: [fastify.authenticate, fastify.requireCompany]
+    preHandler: [requireAuth, requireCompany]
   }, async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       const { companyId } = request as any;
@@ -260,7 +261,7 @@ export const registerUserRoutes = async (fastify: FastifyInstance) => {
   // POST /api/users - Create new user profile
   fastify.post('/users', {
     schema: createUserProfileSchema,
-    preHandler: [fastify.authenticate, fastify.requireCompany]
+    preHandler: [requireAuth, requireCompany]
   }, async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       const { companyId, userId } = request as any;
@@ -281,7 +282,7 @@ export const registerUserRoutes = async (fastify: FastifyInstance) => {
   // GET /api/users/:userId - Get user profile by ID
   fastify.get('/users/:userId', {
     schema: getUserProfileSchema,
-    preHandler: [fastify.authenticate, fastify.requireCompany]
+    preHandler: [requireAuth, requireCompany]
   }, async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       const { companyId } = request as any;
@@ -303,7 +304,7 @@ export const registerUserRoutes = async (fastify: FastifyInstance) => {
   // PUT /api/users/:userId - Update user profile
   fastify.put('/users/:userId', {
     schema: updateUserProfileSchema,
-    preHandler: [fastify.authenticate, fastify.requireCompany]
+    preHandler: [requireAuth, requireCompany]
   }, async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       const { companyId } = request as any;
@@ -329,17 +330,19 @@ export const registerUserRoutes = async (fastify: FastifyInstance) => {
 
   // DELETE /api/users/:userId - Delete user profile
   fastify.delete('/users/:userId', {
-    tags: ['users'],
-    response: {
-      204: { type: 'null' },
-      404: {
-        type: 'object',
-        properties: {
-          error: { type: 'string' }
+    schema:{
+      tags: ['users'],
+      response: {
+        204: { type: 'null' },
+        404: {
+          type: 'object',
+          properties: {
+            error: { type: 'string' }
+          }
         }
       }
     },
-    preHandler: [fastify.authenticate, fastify.requireCompany]
+    preHandler: [requireAuth, requireCompany]
   }, async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       const { companyId } = request as any;
@@ -360,7 +363,7 @@ export const registerUserRoutes = async (fastify: FastifyInstance) => {
   // PUT /api/users/:userId/role - Assign role to user
   fastify.put('/users/:userId/role', {
     schema: assignRoleSchema,
-    preHandler: [fastify.authenticate, fastify.requireCompany]
+    preHandler: [requireAuth, requireCompany]
   }, async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       const { companyId } = request as any;
@@ -383,17 +386,19 @@ export const registerUserRoutes = async (fastify: FastifyInstance) => {
 
   // DELETE /api/users/:userId/role - Remove role from user
   fastify.delete('/users/:userId/role', {
-    tags: ['users'],
-    response: {
-      204: { type: 'null' },
-      404: {
-        type: 'object',
-        properties: {
-          error: { type: 'string' }
+    schema:{
+      tags: ['users'],
+      response: {
+        204: { type: 'null' },
+        404: {
+          type: 'object',
+          properties: {
+            error: { type: 'string' }
+          }
         }
       }
     },
-    preHandler: [fastify.authenticate, fastify.requireCompany]
+    preHandler: [requireAuth, requireCompany]
   }, async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       const { companyId } = request as any;
@@ -414,7 +419,7 @@ export const registerUserRoutes = async (fastify: FastifyInstance) => {
   // PUT /api/users/:userId/group - Assign user to group
   fastify.put('/users/:userId/group', {
     schema: assignGroupSchema,
-    preHandler: [fastify.authenticate, fastify.requireCompany]
+    preHandler: [requireAuth, requireCompany]
   }, async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       const { companyId } = request as any;
@@ -440,7 +445,8 @@ export const registerUserRoutes = async (fastify: FastifyInstance) => {
 
   // DELETE /api/users/:userId/group/:groupId - Remove user from group
   fastify.delete('/users/:userId/group/:groupId', {
-    tags: ['users'],
+    schema:{
+      tags: ['users'],
     response: {
       204: { type: 'null' },
       400: {
@@ -455,8 +461,9 @@ export const registerUserRoutes = async (fastify: FastifyInstance) => {
           error: { type: 'string' }
         }
       }
+    }
     },
-    preHandler: [fastify.authenticate, fastify.requireCompany]
+    preHandler: [requireAuth, requireCompany]
   }, async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       const { companyId } = request as any;
@@ -478,35 +485,37 @@ export const registerUserRoutes = async (fastify: FastifyInstance) => {
 
   // GET /api/users/:userId/assignments - Get user's role and group assignments
   fastify.get('/users/:userId/assignments', {
-    tags: ['users'],
-    response: {
-      200: {
-        type: 'object',
-        properties: {
-          user_id: { type: 'string' },
-          role_id: { type: 'string', nullable: true },
-          role_name: { type: 'string', nullable: true },
-          groups: {
-            type: 'array',
-            items: {
-              type: 'object',
-              properties: {
-                group_id: { type: 'string' },
-                group_name: { type: 'string' },
-                assigned_at: { type: 'string', format: 'date-time' }
+    schema:{
+      tags: ['users'],
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            user_id: { type: 'string' },
+            role_id: { type: 'string', nullable: true },
+            role_name: { type: 'string', nullable: true },
+            groups: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  group_id: { type: 'string' },
+                  group_name: { type: 'string' },
+                  assigned_at: { type: 'string', format: 'date-time' }
+                }
               }
             }
           }
-        }
-      },
-      404: {
-        type: 'object',
-        properties: {
-          error: { type: 'string' }
+        },
+        404: {
+          type: 'object',
+          properties: {
+            error: { type: 'string' }
+          }
         }
       }
     },
-    preHandler: [fastify.authenticate, fastify.requireCompany]
+    preHandler: [requireAuth, requireCompany]
   }, async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       const { companyId } = request as any;

@@ -58,12 +58,12 @@ export const getValkeyClient = (): Redis => {
  * Store session data
  */
 export const setSession = async (
-  sessionToken: string,
+  sessionId: string,
   sessionData: Record<string, any>,
   ttl: number = 3600 // 1 hour default
 ): Promise<void> => {
   const client = getValkeyClient();
-  const key = `session:${sessionToken}`;
+  const key = `session:${sessionId}`;
   
   await client.setex(key, ttl, JSON.stringify(sessionData));
 };
@@ -72,10 +72,10 @@ export const setSession = async (
  * Get session data
  */
 export const getSession = async (
-  sessionToken: string
+  sessionId: string
 ): Promise<Record<string, any> | null> => {
   const client = getValkeyClient();
-  const key = `session:${sessionToken}`;
+  const key = `session:${sessionId}`;
   
   const data = await client.get(key);
   return data ? JSON.parse(data) : null;
@@ -84,9 +84,9 @@ export const getSession = async (
 /**
  * Delete session
  */
-export const deleteSession = async (sessionToken: string): Promise<void> => {
+export const deleteSession = async (sessionId: string): Promise<void> => {
   const client = getValkeyClient();
-  const key = `session:${sessionToken}`;
+  const key = `session:${sessionId}`;
   
   await client.del(key);
 };
@@ -95,11 +95,11 @@ export const deleteSession = async (sessionToken: string): Promise<void> => {
  * Extend session TTL
  */
 export const extendSession = async (
-  sessionToken: string,
+  sessionId: string,
   ttl: number = 3600
 ): Promise<boolean> => {
   const client = getValkeyClient();
-  const key = `session:${sessionToken}`;
+  const key = `session:${sessionId}`;
   
   const result = await client.expire(key, ttl);
   return result === 1;

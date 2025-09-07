@@ -1,7 +1,7 @@
 export default defineAppConfig({
   userMenu:[
     {
-      name: "client-work-panel"
+      name: "custom_data"
     },
     {
       name: 'admin-user'
@@ -13,5 +13,5 @@ export default defineAppConfig({
       name: 'admin-group'
     }
   ],
-  defaultTab:"client-work-panel"
+  defaultTab:"custom_data"
 })

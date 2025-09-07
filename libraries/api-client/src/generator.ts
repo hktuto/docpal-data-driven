@@ -44,7 +44,7 @@ async function generate(){
                         apiClassName: point.className,
                         singleHttpClient:false,
                         modular:false,
-                        moduleNameIndex: 0,
+                        moduleNameIndex: 1,
                         moduleNameFirstTag:false,
                         prettier: {
                             // By default prettier config is load from your project
@@ -58,10 +58,7 @@ async function generate(){
                                 // if routeData.route start with /api, remove it
                                 // console.log("onCreateRoute", routeData.request.path)
                                 // @ts-ignore
-                                if(routeData.request.path && routeData.request.path.startsWith('/api')){
-                                    // @ts-ignore
-                                    routeData.request.path = routeData.request.path.replace('/api','')
-                                }
+                                
                                 return routeData
                             },
                             onCreateRouteName:(routeNameInfo, rawRouteInfo) => {
@@ -76,20 +73,15 @@ async function generate(){
                                 const ignoreList = ['api', 'docpal'];
                                 // remove first item in path
                                 const allPath = paths.reduce((all, curr, index) => {
-                                    if(ignoreList.includes(curr)) return all
-                                    // if curr contain "${}", replace it
-                                    if(curr.includes('${')) {
-                                        const newPath = curr.replace('${', '').replace('}', '')
-                                    }
+                                    
                                     if(curr !== routeInfo.moduleName){
                                         all.push(curr)
                                     }
                                     return all
                                 },[])
-                               
-                                let newName = routeInfo.method + toPascalCase(allPath.join('-'))
+                                let newName = routeInfo.method + (allPath &&allPath.length ? toPascalCase(allPath.join('-')) : "")
                                 let oldName = newName;
-                                if(finalRoute[newName]) {
+                                if(finalRoute[newName] && finalRoute[newName].length) {
                                     newName += finalRoute[newName].length
                                 }
                                 finalRoute[newName] = {
@@ -99,16 +91,6 @@ async function generate(){
                                     moduleName: routeInfo.moduleName,
                                 }
 
-                                // if(!finalRoute[routeInfo.moduleName]){
-                                //     finalRoute[routeInfo.moduleName]= {}
-                                // }
-                                // if(!finalRoute[routeInfo.moduleName][oldName]) {
-                                //     finalRoute[routeInfo.moduleName][oldName] = []
-                                // }
-                                // if(finalRoute[routeInfo.moduleName][oldName].length > 0){
-                                //     newName += finalRoute[routeInfo.moduleName][oldName].length
-                                // }
-                                // finalRoute[routeInfo.moduleName][oldName].push(routeInfo.method +" : " + newName + " : " + routeInfo.route)
                                 
                                 return newName
                             }
@@ -130,6 +112,7 @@ async function generate(){
 }
 
 function toPascalCase(string) {
+    if(!string) return "";
     return `${string}`
       .toLowerCase()
       .replace(new RegExp(/[-_]+/, 'g'), ' ')

@@ -81,6 +81,24 @@ BEGIN
             events JSONB DEFAULT ''{}''::jsonb
         )', schema_name);
     
+    -- Data Views table for custom view management
+    EXECUTE format('
+        CREATE TABLE IF NOT EXISTS %I.data_views (
+            id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+            name VARCHAR(128) NOT NULL,
+            description VARCHAR(512),
+            table_slug VARCHAR(128) NOT NULL,
+            is_default BOOLEAN NOT NULL DEFAULT FALSE,
+            layout JSONB NOT NULL DEFAULT ''[]''::jsonb,
+            created_by UUID NOT NULL,
+            created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+            updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+            
+            -- Foreign key constraint to custom_data_model
+            CONSTRAINT fk_data_views_table_slug 
+                FOREIGN KEY (table_slug) REFERENCES %I.custom_data_model(slug) ON DELETE CASCADE
+        )', schema_name, schema_name);
+    
     -- Enhanced audit log table
     EXECUTE format('
         CREATE TABLE IF NOT EXISTS %I.audit_log (
@@ -347,6 +365,14 @@ BEGIN
     EXECUTE format('CREATE INDEX IF NOT EXISTS idx_%I_user_group_user_id ON %I.user_group(user_id)', 
                    replace(schema_name, '-', '_'), schema_name);
     EXECUTE format('CREATE INDEX IF NOT EXISTS idx_%I_user_group_group_id ON %I.user_group(group_id)', 
+                   replace(schema_name, '-', '_'), schema_name);
+    
+    -- Data Views indexes
+    EXECUTE format('CREATE INDEX IF NOT EXISTS idx_%I_data_views_table_slug ON %I.data_views(table_slug)', 
+                   replace(schema_name, '-', '_'), schema_name);
+    EXECUTE format('CREATE INDEX IF NOT EXISTS idx_%I_data_views_created_by ON %I.data_views(created_by)', 
+                   replace(schema_name, '-', '_'), schema_name);
+    EXECUTE format('CREATE UNIQUE INDEX IF NOT EXISTS idx_%I_data_views_default_per_table ON %I.data_views(table_slug) WHERE is_default = true', 
                    replace(schema_name, '-', '_'), schema_name);
     EXECUTE format('CREATE INDEX IF NOT EXISTS idx_%I_audit_log_table_name ON %I.audit_log(table_name)', 
                    replace(schema_name, '-', '_'), schema_name);

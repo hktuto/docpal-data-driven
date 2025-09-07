@@ -22,6 +22,13 @@ export interface FileUploadData {
   additionalData?: Record<string, any>;
 }
 
+// Column parsing interface for nested JSONB support
+interface ParsedColumn {
+  column: string;
+  isJsonbNested: boolean;
+  jsonbPath?: string[];
+}
+
 // File metadata interface
 export interface FileMetadata {
   filename: string;
@@ -30,6 +37,25 @@ export interface FileMetadata {
   uploadedAt: string;
   filePath: string;
 }
+
+/**
+ * Parse column field to detect nested JSONB fields with dot notation
+ */
+const parseColumnField = (columnField: string): ParsedColumn => {
+  if (columnField.includes('.')) {
+    const parts = columnField.split('.');
+    return {
+      column: parts[0],
+      isJsonbNested: true,
+      jsonbPath: parts.slice(1)
+    };
+  }
+  
+  return {
+    column: columnField,
+    isJsonbNested: false
+  };
+};
 
 /**
  * Upload file and update dynamic table
@@ -65,26 +91,61 @@ export const uploadFileToTable = async (
       filePath: filePath
     };
     
+    // Parse the column field for nested JSONB support
+    const parsedColumn = parseColumnField(uploadData.column);
+    
     // Build update query dynamically
-    const updateFields: string[] = [`${uploadData.column} = $1`];
-    const updateValues: any[] = [filePath];
-    let paramIndex = 2;
+    const updateFields: string[] = [];
+    const updateValues: any[] = [];
+    let paramIndex = 1;
+    
+    // Handle main column (file path)
+    if (parsedColumn.isJsonbNested) {
+      // Handle nested JSONB field using jsonb_set
+      const jsonbPath = `{${parsedColumn.jsonbPath!.join(',')}}`;
+      updateFields.push(`${parsedColumn.column} = jsonb_set(COALESCE(${parsedColumn.column}, '{}'), '${jsonbPath}', $${paramIndex}::jsonb)`);
+      updateValues.push(JSON.stringify(filePath));
+    } else {
+      // Handle regular column (existing logic)
+      updateFields.push(`${parsedColumn.column} = $${paramIndex}`);
+      updateValues.push(filePath);
+    }
+    paramIndex++;
     
     // Add metadata field if specified
     if (uploadData.metadataField) {
-      updateFields.push(`${uploadData.metadataField} = $${paramIndex++}`);
-      updateValues.push(JSON.stringify(metadata));
+      const parsedMetadataField = parseColumnField(uploadData.metadataField);
+      
+      if (parsedMetadataField.isJsonbNested) {
+        const jsonbPath = `{${parsedMetadataField.jsonbPath!.join(',')}}`;
+        updateFields.push(`${parsedMetadataField.column} = jsonb_set(COALESCE(${parsedMetadataField.column}, '{}'), '${jsonbPath}', $${paramIndex}::jsonb)`);
+        updateValues.push(JSON.stringify(metadata));
+      } else {
+        updateFields.push(`${parsedMetadataField.column} = $${paramIndex}`);
+        updateValues.push(JSON.stringify(metadata));
+      }
+      paramIndex++;
     }
     
-    // Add additional data fields
+    // Add additional data fields (enhanced for JSONB support)
     if (uploadData.additionalData && typeof uploadData.additionalData === 'object' && !Array.isArray(uploadData.additionalData)) {
       for (const [key, value] of Object.entries(uploadData.additionalData)) {
         // Skip numeric keys and ensure key is a valid column name
         if (!isNaN(Number(key))) {
           continue;
         }
-        updateFields.push(`${key} = $${paramIndex++}`);
-        updateValues.push(value);
+        
+        const parsedKey = parseColumnField(key);
+        
+        if (parsedKey.isJsonbNested) {
+          const jsonbPath = `{${parsedKey.jsonbPath!.join(',')}}`;
+          updateFields.push(`${parsedKey.column} = jsonb_set(COALESCE(${parsedKey.column}, '{}'), '${jsonbPath}', $${paramIndex}::jsonb)`);
+          updateValues.push(JSON.stringify(value));
+        } else {
+          updateFields.push(`${parsedKey.column} = $${paramIndex}`);
+          updateValues.push(value);
+        }
+        paramIndex++;
       }
     }
     
@@ -159,13 +220,30 @@ export const deleteFileFromTable = async (
     
     // If table info provided, clear the table columns
     if (table && column && row) {
-
-      const updateFields: string[] = [`${column} = NULL`];
-      const updateValues: any[] = [row];
+      const parsedColumn = parseColumnField(column);
+      
+      let updateFields: string[];
+      let updateValues: any[] = [row];
+      
+      if (parsedColumn.isJsonbNested) {
+        // Use jsonb_set to set nested field to null
+        const jsonbPath = `{${parsedColumn.jsonbPath!.join(',')}}`;
+        updateFields = [`${parsedColumn.column} = jsonb_set(COALESCE(${parsedColumn.column}, '{}'), '${jsonbPath}', 'null'::jsonb)`];
+      } else {
+        // Regular column update
+        updateFields = [`${parsedColumn.column} = NULL`];
+      }
 
       // Clear metadata field if specified
       if (metadataField) {
-        updateFields.push(`${metadataField} = NULL`);
+        const parsedMetadataField = parseColumnField(metadataField);
+        
+        if (parsedMetadataField.isJsonbNested) {
+          const jsonbPath = `{${parsedMetadataField.jsonbPath!.join(',')}}`;
+          updateFields.push(`${parsedMetadataField.column} = jsonb_set(COALESCE(${parsedMetadataField.column}, '{}'), '${jsonbPath}', 'null'::jsonb)`);
+        } else {
+          updateFields.push(`${parsedMetadataField.column} = NULL`);
+        }
       }
 
       // Update the dynamic table using queryInTenantSchema

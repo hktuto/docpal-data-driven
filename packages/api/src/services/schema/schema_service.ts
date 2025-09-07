@@ -4,6 +4,7 @@ import { getFGAClient, addDynamicTableType, removeDynamicTableType } from '../..
 import { CustomDataModel, ColumnDefinition } from '../../types';
 import dataTypeMapping from '../../config/data-type-mapping.json';
 import { addAuditTriggerToNewTable } from '../../database/utils/audit-triggers';
+import { createDefaultTableView, createDefaultTreeView } from '../dataview/dataview_service';
 
 export interface CreateSchemaRequest {
   slug: string;
@@ -152,6 +153,39 @@ export const createSchema = async (companyId: string, userId: string, schemaData
     
     // Set up default OpenFGA permissions for the schema (outside transaction)
     await setupDefaultSchemaPermissions(companyId, result.id, userId);
+    
+    // Create default data view for the new table
+    console.log(`🎨 Creating default data view for table: ${schemaData.slug}`);
+    try {
+      await createDefaultTableView(companyId, schemaData.slug, schemaData.label, userId);
+      console.log(`✅ Default data view created successfully for table: ${schemaData.slug}`);
+      
+      // Check if this table has a parent-child relationship and create tree view
+      const hasParentColumn = schemaData.columns.find(col => 
+        col.name.includes('parent') && (col.data_type === 'uuid' || col.view_type === 'relation')
+      );
+      
+      if (hasParentColumn) {
+        const labelColumn = schemaData.columns.find(col => 
+          col.view_type === 'text' || col.name === 'name' || col.name === 'title'
+        );
+        
+        if (labelColumn) {
+          await createDefaultTreeView(
+            companyId, 
+            schemaData.slug, 
+            schemaData.label, 
+            hasParentColumn.name, 
+            labelColumn.name, 
+            userId
+          );
+          console.log(`✅ Default tree view created successfully for table: ${schemaData.slug}`);
+        }
+      }
+    } catch (error) {
+      console.error(`❌ Failed to create default data view for table ${schemaData.slug}:`, error);
+      // Don't throw error here - schema creation should still succeed
+    }
     
     // Note: Dynamic table types would be added to OpenFGA model here
     // For now, we'll use the existing custom_data_model permissions

@@ -72,32 +72,32 @@ const createApp = async () => {
   const valkeyClient = initializeValkey(config.valkey);
 
   // Register session support with Valkey store
-  await app.register(session, {
-    secret: config.session.secret,
-    cookie: {
-      secure: config.session.secure,
-      maxAge: config.session.maxAge * 1000, // Convert to milliseconds
-      httpOnly: true,
-      sameSite: 'lax',
-    },
-    store: {
-      set: (sessionId: string, session: any, callback: any) => {
-        valkeyClient.setex(`session:${sessionId}`, config.session.maxAge, JSON.stringify(session))
-          .then(() => callback())
-          .catch(callback);
-      },
-      get: (sessionId: string, callback: any) => {
-        valkeyClient.get(`session:${sessionId}`)
-          .then(data => callback(null, data ? JSON.parse(data) : null))
-          .catch(callback);
-      },
-      destroy: (sessionId: string, callback: any) => {
-        valkeyClient.del(`session:${sessionId}`)
-          .then(() => callback())
-          .catch(callback);
-      },
-    },
-  });
+  // await app.register(session, {
+  //   secret: config.session.secret,
+  //   cookie: {
+  //     secure: config.session.secure,
+  //     maxAge: config.session.maxAge * 1000, // Convert to milliseconds
+  //     httpOnly: true,
+  //     sameSite: 'lax',
+  //   },
+  //   // store: {
+  //   //   set: (sessionId: string, session: any, callback: any) => {
+  //   //     valkeyClient.setex(`session:${sessionId}`, config.session.maxAge, JSON.stringify(session))
+  //   //       .then(() => callback())
+  //   //       .catch(callback);
+  //   //   },
+  //   //   get: (sessionId: string, callback: any) => {
+  //   //     valkeyClient.get(`session:${sessionId}`)
+  //   //       .then(data => callback(null, data ? JSON.parse(data) : null))
+  //   //       .catch(callback);
+  //   //   },
+  //   //   destroy: (sessionId: string, callback: any) => {
+  //   //     valkeyClient.del(`session:${sessionId}`)
+  //   //       .then(() => callback())
+  //   //       .catch(callback);
+  //   //   },
+  //   // },
+  // });
 
   // Swagger documentation
   await app.register(import('@fastify/swagger'), {
@@ -216,6 +216,7 @@ const createApp = async () => {
           roles: '/api/roles',
           groups: '/api/groups',
           schemas: '/api/schemas',
+          'data-views': '/api/views/:table_slug',
           records: '/api/records',
           files: '/api/files',
           workflows: '/api/workflows',
@@ -235,7 +236,7 @@ const createApp = async () => {
 
     // Register schema routes
     const { registerSchemaRoutes } = await import('./services/schema/schema_route');
-    await fastify.register(registerSchemaRoutes, { prefix: '/api' });
+    await fastify.register(registerSchemaRoutes, { prefix: '/api/schemas' });
 
     // Register record routes
     const { registerRecordRoutes } = await import('./services/record/record_route');
@@ -260,6 +261,10 @@ const createApp = async () => {
     // Register group routes
     const { registerGroupRoutes } = await import('./services/group/group_route');
     await fastify.register(registerGroupRoutes, { prefix: '/api' });
+
+    // Register data view routes
+    const { registerDataViewRoutes } = await import('./services/dataview/dataview_route');
+    await fastify.register(registerDataViewRoutes, { prefix: '/api' });
 
   });
  
