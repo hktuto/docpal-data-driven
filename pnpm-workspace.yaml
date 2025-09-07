@@ -1,0 +1,12 @@
+packages:
+  - packages/*
+  - libraries/*
+
+ignoredBuiltDependencies:
+  - esbuild
+  - vue-demi
+
+onlyBuiltDependencies:
+  - bcrypt
+  - better-sqlite3
+  - sharp

@@ -1,0 +1,429 @@
+@use 'sass:math';
+@use 'sass:map';
+@use 'sass:color';
+@use './elements/index.scss';
+@use './var.scss' as *;
+@use './flex.scss';
+
+$types: primary, success, warning, danger, error, info;
+
+:root {
+  --app-main-color: #{map.get($app-color, 'primary', 'base')};
+
+  --app-accent-color: #{map.get($app-color, 'success', 'base')};
+
+  // calendar
+  --sx-color-primary: var(--app-accent-color) !important;
+
+  // generate grey color in 5 levels
+  --app-grey-hue: 200;
+  --app-grey-saturation: 15%;
+  // #E6F1F6
+  --app-bg: radial-gradient(72% 72% at 2% -5%, #dbe7ec 0%, #e8efef 51%, #f3f0f0 100%);
+
+  // loop through grey levels , each level increase by 2.5%
+  @for $i from 1 through 40 {
+    $tab: $i * 25;
+
+    @if $i < 4 {
+      --app-grey-0#{$tab}: hsl(var(--app-grey-hue), var(--app-grey-saturation), #{$i * 2.5%});
+    } @else {
+      --app-grey-#{$tab}: hsl(var(--app-grey-hue), var(--app-grey-saturation), #{$i * 2.5%});
+    }
+  }
+
+  @each $type in $types {
+    --app-#{$type}-color: #{map.get($app-color, $type, 'base')};
+
+    @for $i from 1 through 3 {
+      // generate color in 5 levels mix with white
+      --app-#{$type}-#{$i}: #{color.mix(map.get($app-color, $type, 'base'), white, $weight: $i * 10%)};
+    }
+
+    @for $i from 4 through 6 {
+      // generate color in 5 levels mix with black
+      --app-#{$type}-#{$i}: #{color.mix(map.get($app-color, $type, 'base'), black, $weight: ($i - 3) * 20%)};
+    }
+  }
+
+  // generate white and black color
+  --app-paper: #fff;
+  --app-black: #000;
+  --app-text-color: #000;
+
+  --app-font-size-xs: 0.6rem;
+  --app-font-size-s: 0.75rem;
+  --app-font-size-m: 0.9rem;
+  --app-font-size-l: 1.2rem;
+  --app-font-size-xl: 1.8rem;
+  --app-font-size-xxl: 2rem;
+  --app-line-height: 1.2;
+  --app-font-weight: 400;
+  --app-font-family: 'Roboto', sans-serif;
+
+  // set ap size base on rem;
+  --app-border-radius-s: 0.25rem;
+  --app-border-radius-m: 0.5rem;
+  --app-border-radius-l: 1rem;
+  --app-border-radius-xl: 2rem;
+  --app-border-radius-xxl: 4rem;
+  --app-border-radius-max: 10e5px;
+
+  // set app space
+  --app-space-xxs: 0.2rem;
+  --app-space-xs: 0.4rem;
+  --app-space-s: 0.8rem;
+  --app-space-m: 1.2rem;
+  --app-space-l: 2.4rem;
+  --app-space-xl: 3.6rem;
+  --app-space-xxl: 4.8rem;
+
+  // set app shadow
+  --app-shadow-s: 0 1px 2px 0 rgba(0, 0, 0, 0.02), 0 2px 4px rgba(0, 0, 0, 0.01);
+  --app-shadow-m: 0 1px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -1px rgba(0, 0, 0, 0.1);
+  --app-shadow-l: 0 1px 15px -3px rgba(0, 0, 0, 0.2), 0 2px 6px -2px rgba(0, 0, 0, 0.1);
+  --app-shadow-xl: 0 2px 25px -5px rgba(0, 0, 0, 0.4), 0 3px 10px -5px rgba(0, 0, 0, 0.1), 0 2px 6px -2px rgba(0, 0, 0, 0.05);
+
+  // override element
+  --el-border-radius-base: var(--app-border-radius-m);
+}
+
+html.dark {
+  --app-bg: radial-gradient(72% 72% at 2% -5%, #2d3234 0%, #2f3737 51%, #3f3f3f 100%);
+
+  @for $i from 1 through 40 {
+    $tab: $i * 25;
+
+    @if $i < 4 {
+      --app-grey-0#{$tab}: hsl(var(--app-grey-hue), var(--app-grey-saturation), #{100 - $i * 2.5%});
+    } @else {
+      --app-grey-#{$tab}: hsl(var(--app-grey-hue), var(--app-grey-saturation), #{100 - $i * 2.5%});
+    }
+  }
+}
+
+html,
+body {
+  padding: 0;
+  margin: 0;
+  font-family: var(--app-font-family);
+  font-size: var(--app-font-size-m);
+  line-height: var(--app-line-height);
+  font-weight: var(--app-font-weight);
+  --gradient-color-1: #119de9;
+  --gradient-color-2: #637fdc;
+  --gradient-color-3: #1dd6c3;
+  --gradient-color-4: #9adfee;
+  --vxe-ui-font-family: var(--app-font-family);
+  --vxe-ui-table-menu-item-width: initial;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+$colors:
+  'main-color', 'secondary-color', 'success-color', 'warning-color', 'error-color', 'grey-100', 'grey-200', 'grey-300', 'grey-400', 'grey-500', 'grey-600',
+  'grey-700', 'grey-800', 'grey-900', 'grey-1000';
+
+// generate class to all background color
+@each $color in $colors {
+  .bg-#{$color} {
+    background-color: var(--app-#{$color});
+  }
+}
+
+// menu list items
+
+// vxe addition style
+.vxe-toolbar {
+  gap: var(--app-space-xs);
+}
+
+.pageContainer--padding {
+  height: 100%;
+  overflow: hidden;
+  padding: var(--app-space-s);
+  container-type: inline-size;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+@each $type in $types {
+  .color--#{$type} {
+    color: var(--app-#{$type}-color);
+  }
+}
+
+// vxe table context menu
+.contextMenuContainer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: auto;
+  background: var(--app-grey-1000);
+  z-index: 8888 !important;
+  padding: var(--app-space-xs) !important;
+  border-radius: var(--app-border-radius-s);
+  border: 1px solid var(--app-grey-900) !important;
+  transform: translateY(100vw);
+  box-shadow: none !important;
+  opacity: 0;
+  font-size: var(--app-font-size-s) !important;
+  // display: none;
+  transition:
+    transform 0.1s ease-in-out,
+    opacity 0.2s ease-in-out;
+  transition-delay: 0.2s;
+
+  &:empty {
+    &:after {
+      content: 'No Action';
+      display: block;
+      text-align: center;
+    }
+  }
+
+  &.visible,
+  &.is--visible {
+    // display: block !important;
+    opacity: 1;
+    transform: translateY(0);
+    transition-delay: 0s;
+  }
+
+  .vxe-table--context-menu-clild-wrapper {
+    padding: var(--app-space-xs);
+    border-radius: var(--app-border-radius-s);
+    box-shadow: none !important;
+    font-size: var(--app-font-size-s) !important;
+  }
+
+  .vxe-context-menu--link {
+    padding: 0 !important;
+    color: var(--app-grey-400);
+    text-decoration: none;
+  }
+
+  .vxe-context-menu--link-prefix,
+  .vxe-context-menu--link-suffix {
+    min-width: 0 !important;
+    padding: 0 !important;
+  }
+
+  li {
+    transition: background-color 0.2s ease-in-out;
+  }
+
+  .link--active {
+    background-color: var(--app-grey-900) !important;
+    border-color: var(--app-grey-900) !important;
+
+    .vxe-context-menu--link {
+      color: var(--app-grey-100);
+    }
+  }
+}
+
+.errorBoundaryContainer {
+  width: 100%;
+  height: 100%;
+  padding: var(--app-space-s);
+  overflow: auto;
+  position: relative;
+  display: grid;
+  place-items: center;
+  .messageContainer {
+    max-width: 620px;
+    width: 100%;
+    display: flex;
+    flex-flow: column nowrap;
+    justify-content: flex-start;
+    align-items: flex-start;
+    gap: var(--app-space-m);
+    .errorTitle {
+      margin: 0;
+    }
+    pre {
+      width: 100%;
+      background-color: var(--app-grey-950);
+      padding: var(--app-space-m);
+      margin: 0;
+      text-align: left;
+      border-radius: var(--app-border-radius-m);
+      white-space: normal;
+    }
+  }
+}
+.el-select-group__title {
+  // font-size: 1.5rem;
+}
+.dp-tabs--auto {
+  height: 100%;
+  overflow: hidden;
+  .el-tabs__content {
+    overflow: auto;
+  }
+  .el-tab-pane {
+    height: 100%;
+    overflow: hidden;
+  }
+}
+
+// splitpanes
+
+.splitpanes {
+  height: 100%;
+}
+
+.splitpanes__pane {
+  height: 100%;
+  transition: none;
+  // background: var(--app-grey-925);
+  // box-shadow: var(--app-shadow-s);
+  border-radius: var(--panel-border-radius);
+  overflow: hidden;
+
+  &:has(.activePanel) {
+    // background: var(--app-grey-975);
+    // box-shadow: var(--app-shadow-l);
+    z-index: 4;
+  }
+}
+
+.splitpanes__splitter {
+  --center-width: 6px;
+  --dragger-width: 1px;
+  --bg-width: var(--app-space-m);
+  --center-color: transparent;
+  --bg-color: rgba(0, 0, 0, 0.3);
+  z-index: 2;
+
+  &:hover {
+    --dragger-width: 2px;
+    --splitpanes-margin: 2rem;
+    --center-color: var(--app-success-3);
+  }
+
+  &:after {
+    content: '';
+    position: absolute;
+    background: var(--center-color);
+    z-index: 2;
+    transition: all 0.1s ease-in-out;
+  }
+
+  &:before {
+    content: '';
+    position: absolute;
+  }
+}
+
+.splitpanes--dragging > .splitpanes__splitter {
+  --center-color: var(--app-accent-color) !important;
+  --dragger-width: 2px !important;
+  --splitpanes-margin: 0rem !important;
+}
+
+.splitpanes--vertical > .splitpanes__splitter {
+  width: var(--center-width);
+  position: relative;
+
+  &:after {
+    width: var(--dragger-width);
+    height: calc(100% - var(--splitpanes-margin) * 2);
+    display: block;
+    background: var(--center-color);
+    top: var(--splitpanes-margin);
+    left: calc((var(--center-width) - var(--dragger-width)) / 2);
+  }
+
+  &:before {
+    width: var(--bg-width);
+    height: 100%;
+    display: block;
+    position: absolute;
+    left: calc((var(--center-width) - var(--bg-width)) / 2);
+    background: var(--bg-color);
+    opacity: 0;
+  }
+}
+
+.splitpanes--horizontal > .splitpanes__splitter {
+  min-height: var(--app-space-s);
+  position: relative;
+
+  &:hover {
+    background: var(--app-grey-850);
+
+    &:after {
+      background: var(--app-grey-800);
+    }
+  }
+
+  &:after {
+    content: '';
+    height: 2px;
+    width: 100%;
+    display: block;
+    background: var(--app-grey-850);
+    position: absolute;
+    left: calc((var(--app-space-s) / 2) - 1px);
+  }
+}
+
+// Element UI
+
+
+.field-wrapper pre{
+  font-family: var(--app-font-family) !important;
+}
+
+.el-dialog__header {
+  text-align: left;
+}
+.el-divider--horizontal {
+  margin: var(--app-space-xs) 0 !important;
+}
+.v-form-container .el-divider--horizontal {
+  margin: var(--app-space-m) 0 !important;
+}
+// TODO :  this is a temp fix for message box dialog may set to lower z-index
+.el-overlay.is-message-box {
+  z-index: 10000 !important;
+}
+
+.tableRow-icon-cell {
+  display: flex;
+  align-items: center;
+  gap: var(--app-space-s);
+  cursor: pointer;
+  img {
+    width: var(--app-space-m);
+  }
+}
+// 隐藏vxe-table右击事件底边框
+.contextMenuContainer .vxe-context-menu--option-wrapper {
+  border: 0;
+}
+.cursorPointer {
+  cursor: pointer;
+}
+.loading-notification {
+  width: fit-content !important;
+  max-width: 180px;
+  padding: var(--app-padding) !important;
+  .el-notification__icon {
+    animation: rotating 2s linear infinite;
+  }
+  .el-notification__group {
+    overflow: hidden;
+    .el-notification__content p {
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+  }
+}

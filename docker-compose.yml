@@ -1,0 +1,169 @@
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: docpal-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: docpal_dev
+      POSTGRES_USER: docpal_user
+      POSTGRES_PASSWORD: docpal_password_dev_123
+      PGDATA: /var/lib/postgresql/data/pgdata
+    command: [
+      "postgres",
+      "-c", "log_destination=stderr",
+      "-c", "client_min_messages=notice",
+      "-c", "log_min_messages=notice"
+    ]
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d
+    networks:
+      - docpal-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U docpal_user -d docpal_dev"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # Valkey for sessions and caching (Redis-compatible)
+  valkey:
+    image: valkey/valkey:7-alpine
+    container_name: docpal-valkey
+    restart: unless-stopped
+    environment:
+      - VALKEY_PASSWORD=valkey_password_dev_123
+    ports:
+      - "6379:6379"
+    volumes:
+      - valkey_data:/data
+    networks:
+      - docpal-network
+    healthcheck:
+      test: ["CMD", "valkey-cli", "-a", "valkey_password_dev_123", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    command: valkey-server --appendonly yes --requirepass valkey_password_dev_123
+
+  # OpenFGA for fine-grained authorization
+  openfga:
+    image: openfga/openfga:latest
+    container_name: docpal-openfga
+    restart: unless-stopped
+    command: ["run"]
+    environment:
+      - OPENFGA_DATASTORE_ENGINE=postgres
+      - OPENFGA_DATASTORE_URI=postgres://docpal_user:docpal_password_dev_123@postgres:5432/docpal_dev?sslmode=disable
+      - OPENFGA_LOG_LEVEL=info
+      - OPENFGA_HTTP_ADDR=0.0.0.0:8080
+      - OPENFGA_GRPC_ADDR=0.0.0.0:8081
+    ports:
+      - "8080:8080"
+      - "8081:8081"
+      - "3211:3000"
+    networks:
+      - docpal-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # MinIO for file storage (S3-compatible)
+  minio:
+    image: minio/minio:latest
+    container_name: docpal-minio
+    restart: unless-stopped
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin123
+      MINIO_BROWSER_REDIRECT_URL: http://localhost:9001
+    ports:
+      - "9000:9000"  # API port
+      - "9001:9001"  # Console port
+    volumes:
+      - minio_data:/data
+    networks:
+      - docpal-network
+    command: server /data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+      start_period: 30s
+
+  # Temporal Server for workflow orchestration
+  temporal:
+    image: temporalio/auto-setup:1.22.3
+    container_name: docpal-temporal
+    restart: unless-stopped
+    environment:
+      - DB=postgres12
+      - DB_PORT=5432
+      - POSTGRES_USER=docpal_user
+      - POSTGRES_PWD=docpal_password_dev_123
+      - POSTGRES_SEEDS=postgres
+      - TEMPORAL_ADDRESS=temporal:7233
+      - TEMPORAL_CLI_ADDRESS=temporal:7233
+    ports:
+      - "7233:7233"  # Temporal server
+    networks:
+      - docpal-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # Temporal Admin Tools
+  temporal-admin-tools:
+    image: temporalio/admin-tools:1.22.3
+    container_name: docpal-temporal-admin-tools
+    restart: unless-stopped
+    environment:
+      - TEMPORAL_ADDRESS=temporal:7233
+      - TEMPORAL_CLI_ADDRESS=temporal:7233
+    networks:
+      - docpal-network
+    depends_on:
+      - temporal
+    stdin_open: true
+    tty: true
+
+  # Temporal Web UI
+  temporal-ui:
+    image: temporalio/ui:2.21.3
+    container_name: docpal-temporal-ui
+    restart: unless-stopped
+    environment:
+      - TEMPORAL_ADDRESS=temporal:7233
+      - TEMPORAL_CORS_ORIGINS=http://localhost:3000,http://localhost:8233
+    ports:
+      - "8233:8080"  # Temporal UI
+    networks:
+      - docpal-network
+    depends_on:
+      - temporal
+
+volumes:
+  postgres_data:
+    driver: local
+  valkey_data:
+    driver: local
+  minio_data:
+    driver: local
+  pgadmin_data:
+    driver: local
+  temporal_data:
+    driver: local
+
+networks:
+  docpal-network:
+    driver: bridge

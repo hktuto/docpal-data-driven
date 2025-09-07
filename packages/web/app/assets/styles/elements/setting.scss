@@ -1,0 +1,37 @@
+
+@forward 'element-plus/theme-chalk/src/common/var.scss' with (
+  $colors: (
+    'primary': (
+      'base': #17B2C0,
+    ),
+  ),
+  $common-component-size: (
+    'large': 40px,
+    'default': 32px,
+    'small': 24px,
+  ),
+  $border-radius: (
+    'base': 4px,
+    'small': 2px,
+    'middle': 8px,
+    'round': 20px,
+    'circle': 100%,
+  ),
+  $card: (
+    'border-color': var(--el-border-color-light),
+    'border-radius': var(--el-border-radius-middle),
+    'padding': var(--app-space-m),
+    'bg-color': var(--el-fill-color-blank),
+  ),
+  $font-size: (
+    'extra-large': 2rem,
+    'large': 1.25rem,
+    'medium': 1.2rem,
+    'base': 0.9rem,
+    'small': 0.8rem,
+    'extra-small': 0.7rem,
+  ),
+  $table: (
+    'current-row-bg-color': var(--el-color-primary-light-7),
+  )
+);

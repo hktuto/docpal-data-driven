@@ -1,0 +1,254 @@
+---
+alwaysApply: true
+---
+
+# DocPal Project - Cursor Rules
+
+## Project Overview
+DocPal is a multi-tenant document and data management platform built with Fastify (TypeScript), PostgreSQL, OpenFGA, and MinIO. This is a comprehensive SaaS solution with dynamic data modeling, workflow automation, and sophisticated permission systems.
+
+## Core Development Principles
+
+### 1. No Assumptions Policy
+- **NEVER make assumptions** about user requirements, data structures, or business logic
+- Always ask clarifying questions when requirements are unclear
+- Validate all inputs and edge cases explicitly
+- Document all assumptions that must be made and get confirmation
+
+### 2. Code Quality Standards
+- **Keep code simple and clean** - prefer readability over cleverness
+- Use **functional programming patterns** instead of classes where possible
+- Prefer pure functions with clear inputs/outputs
+- Use TypeScript with flexibility - strict typing for core business logic, relaxed for non-critical areas
+- Follow single responsibility principle
+- Write self-documenting code with clear variable/function names
+
+### 3. Error Handling & Development Process
+- **Keep small steps** - do not edit too much before user review
+- **Two-try rule** - if anything is not working as expected, stop and ask after two attempts
+- Always validate and test changes incrementally
+- Ask for clarification rather than making assumptions
+
+### 4. Functional Programming Approach
+- Use functions instead of classes for business logic
+- Prefer immutable data structures
+- Use composition over inheritance
+- Implement pure functions without side effects when possible
+- Use functional utilities (map, filter, reduce) over imperative loops
+- Handle errors functionally with Result/Either patterns when appropriate
+
+### 5. Project Management
+- **Update the development plan** (`docs/Development-Plan.md`) after completing each task/phase
+- Mark completed items with ✅ and add completion dates
+- Update progress tracking and note any deviations from the plan
+- Document lessons learned and adjustments made
+
+## Technical Guidelines
+
+### Database
+- Use schema-per-tenant isolation (`company_${company_id}`)
+- All database operations must use transactions
+- Use connection pooling for performance
+- Validate all dynamic SQL generation to prevent injection
+- Store dynamic table schemas in `custom_data_model` table
+
+### API Design
+- Follow RESTful conventions with `/api/` prefix
+- Use proper HTTP status codes (200, 201, 400, 401, 403, 404, 500) instead of success/error wrappers
+- Return data directly on success, error objects on failure
+- Validate all inputs with TypeScript schemas
+- Use middleware for cross-cutting concerns (auth, logging, etc.)
+- OpenAPI/Swagger documentation automatically generated from route schemas
+- Swagger UI available at `/docs` endpoint in development
+
+### Fastify Route Typing Pattern
+- **Schema-First Approach**: Define JSON schemas with `as const` for validation and serialization
+- **No Manual Request/Reply Types**: Don't add TypeScript types to `request` and `reply` parameters
+- **Type Assertions in Handlers**: Use type assertions for `request.body`, `request.params`, and `request.query` inside handlers
+- **Example Pattern**:
+  ```typescript
+  // ✅ Good - Schema with const assertion
+  const createItemSchema = {
+    body: {
+      type: 'object',
+      properties: {
+        name: { type: 'string' },
+        description: { type: 'string' }
+      },
+      required: ['name']
+    }
+  } as const;
+  
+  // ✅ Good - Clean route definition
+  fastify.post('/items', {
+    schema: createItemSchema,
+    preHandler: [requireAuth],
+  }, async (request, reply) => {
+    const { name, description } = request.body as { name: string, description?: string };
+    const { id } = request.params as { id: string };
+    // ... handler logic
+  });
+  ```
+
+### HTTP Status Code Guidelines
+- **200 OK**: Successful GET, PUT, PATCH
+- **201 Created**: Successful POST (resource created)
+- **204 No Content**: Successful DELETE
+- **400 Bad Request**: Invalid input/validation errors
+- **401 Unauthorized**: Authentication required
+- **403 Forbidden**: Authenticated but not authorized
+- **404 Not Found**: Resource doesn't exist
+- **500 Internal Server Error**: Unexpected server errors
+
+### Security
+- Session-based authentication with Valkey storage
+- OpenFGA for all authorization decisions
+- Validate and sanitize all user inputs
+- Use parameterized queries for all database operations
+- Implement proper CORS and security headers
+
+### OpenFGA Integration
+- **API Call Format**: OpenFGA SDK 0.9+ methods have different parameter patterns depending on the method
+- **Store-level methods** (no storeId needed):
+  ```typescript
+  // ✅ Correct - Create store
+  await client.createStore({ name: 'Store Name' });
+  
+  // ✅ Correct - List stores
+  await client.listStores();
+  ```
+- **Store-specific methods** (storeId as first parameter):
+  ```typescript
+  // ✅ Correct - Write authorization model
+  await client.writeAuthorizationModel(storeId, authorizationModel);
+  
+  // ✅ Correct - Check permission
+  await client.check(storeId, { tuple_key: {...} });
+  
+  // ✅ Correct - Write relationship
+  await client.write(storeId, { writes: { tuple_keys: [...] } });
+  
+  // ✅ Correct - Delete relationship  
+  await client.write(storeId, { deletes: { tuple_keys: [...] } });
+  ```
+- No type assertions needed with SDK 0.9+ as TypeScript definitions are correct
+
+### File Structure
+```
+packages/
+├── api/                 # Fastify backend
+├── libraries/           # Shared utilities and types
+└── scripts/            # Development and seed scripts
+```
+
+### Data Type System
+- Use the configurable mapping in `packages/libraries/src/data-type-mapping.json`
+- Support dynamic schema creation based on user-defined models
+- Validate data types before database operations
+- Handle type conversions safely
+
+## Development Workflow
+
+### Before Starting Any Task
+1. Read the current development plan
+2. Understand the specific requirements
+3. Ask questions if anything is unclear
+4. Break down complex tasks into smaller steps
+
+### During Development
+1. Write clean, functional code
+2. Add proper error handling
+3. Include input validation
+4. Write meaningful commit messages
+5. Test functionality as you build
+6. **Keep changes small** - request review frequently
+
+### After Completing Tasks
+1. Update the development plan with progress
+2. Mark completed items and add notes
+3. Update any relevant documentation
+4. Consider if any assumptions were made and document them
+
+## Code Examples
+
+### Preferred Function Style
+```typescript
+// ✅ Good - Pure function
+const validateUserInput = (input: UserInput): ValidationResult => {
+  if (!input.email || !isValidEmail(input.email)) {
+    return { isValid: false, errors: ['Invalid email'] };
+  }
+  return { isValid: true, errors: [] };
+};
+
+// ❌ Avoid - Class-based approach
+class UserValidator {
+  validate(input: UserInput): ValidationResult {
+    // ... implementation
+  }
+}
+```
+
+### Database Operations
+```typescript
+// ✅ Good - Functional with transactions
+const createUserWithProfile = async (
+  userData: UserData,
+  profileData: ProfileData
+): Promise<Result<User, Error>> => {
+  return await withTransaction(async (client) => {
+    const user = await createUser(client, userData);
+    const profile = await createProfile(client, profileData, user.id);
+    return { user, profile };
+  });
+};
+```
+
+### Error Handling
+```typescript
+// ✅ Good - Use HTTP status codes, return data directly
+const getUser = async (request: FastifyRequest, reply: FastifyReply) => {
+  try {
+    const { id } = request.params as { id: string };
+    const user = await findUserById(id);
+    
+    if (!user) {
+      return reply.status(404).send({ error: 'User not found' });
+    }
+    
+    return reply.status(200).send(user);
+  } catch (error) {
+    return reply.status(500).send({ error: 'Internal server error' });
+  }
+};
+
+// ✅ Good - Service layer returns data or throws
+const findUserById = async (id: string): Promise<User> => {
+  const user = await db.query('SELECT * FROM users WHERE id = $1', [id]);
+  if (!user) {
+    throw new NotFoundError('User not found');
+  }
+  return user;
+};
+```
+
+## File Naming Conventions
+- Use kebab-case for files: `user-service.ts`, `auth-middleware.ts`
+- Use PascalCase for types: `UserProfile`, `DatabaseConnection`
+- Use camelCase for functions and variables: `createUser`, `userData`
+
+## Documentation Requirements
+- Update API documentation when adding/changing endpoints
+- All API endpoints automatically documented via OpenAPI/Swagger schemas
+- Access interactive API documentation at `/docs` endpoint during development
+- Document complex business logic with inline comments
+- Keep the development plan current with progress
+- Document any deviations from the original plan
+
+## Testing Approach
+- Write unit tests for pure functions
+- Integration tests for API endpoints
+- Test error conditions and edge cases
+- Mock external dependencies (database, OpenFGA, MinIO)
+
+Remember: This is a complex multi-tenant system. Take time to understand the requirements fully before implementing. When in doubt, ask questions rather than making assumptions.

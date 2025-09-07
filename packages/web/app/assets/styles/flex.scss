@@ -1,0 +1,100 @@
+// 主轴方向 属性值
+$directionList: row , row-reverse , column , column-reverse;
+// 主轴对齐方式 属性值
+$justifyContentList: flex-start , flex-end , center , space-between , space-around;
+// 交叉轴对齐方式 属性值
+$alignItemsList: flex-start , flex-end , center , baseline , stretch;
+
+// 三层遍历，组合所有属性值
+@each $direction in $directionList {
+  
+  // 简化一些属性值
+  $dir: $direction;
+  @if $direction == 'row' {
+    $dir: 'x';
+  }
+  @if $direction == 'column' {
+    $dir: 'y';
+  }
+  @each $justifyContent in $justifyContentList {
+
+    // 简化一些属性值
+    $JC: $justifyContent;
+    @if $justifyContent == 'flex-start' {
+      $JC: 'start';
+    }
+    @if $justifyContent == 'flex-end' {
+      $JC: 'end';
+    }
+    @if $justifyContent == 'space-between' {
+      $JC: 'between';
+    }
+    @if $justifyContent == 'space-around' {
+      $JC: 'around';
+    }
+    @each $alignItems in $alignItemsList {
+
+      // 简化一些属性值
+      $AI: $alignItems;
+      @if $alignItems == 'flex-start' {
+        $AI: 'start';
+      }
+      @if $alignItems == 'flex-end' {
+        $AI: 'end';
+      }
+      
+      // 根据变量，组合为css代码
+      @if $AI == 'center' {
+        .flex-#{$dir}-#{$JC} {
+          display: flex;
+          flex-direction: $direction;
+          justify-content: $justifyContent;
+          align-items: center;
+        }
+      }
+      @else {
+        .flex-#{$dir}-#{$JC}-#{$AI} {
+          display: flex;
+          flex-direction: $direction;
+          justify-content: $justifyContent;
+          align-items: $alignItems;
+        }
+      }
+    }
+  }
+}
+.scroll-dialog {
+  display: flex;
+  flex-direction: column;
+  margin: 0 !important;
+  position: absolute;
+  top: 52%;
+  left: 50%;
+  transform: translate(-50%,-50%);
+  max-height: 80%;
+  width: 80%;
+  height: var(--scroll-dialog-height);
+  min-width: 280px;
+  &.is-fullscreen{
+    top: 0;
+    left: 0;
+    transform: none;
+    width: 100%;
+    height: 100%;
+    max-height: none;
+    min-width: 0;
+  }
+  .el-dialog__body {
+    flex: 1;
+    overflow: auto;
+    height: 100%;
+    padding: var(--app-space-xs) var(--el-dialog-padding-primary);
+  }
+  .el-form-item__error{
+    z-index: 3;
+    background-color: rgba(255, 255, 255, 0.9);
+  }
+  @media(max-width: 640px){
+    --el-dialog-width : 80% !important;
+  }
+}

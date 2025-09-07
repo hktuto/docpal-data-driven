@@ -1,0 +1,19 @@
+{
+  "name": "eventbus",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/index.ts",
+  "files": [
+    "/src/*"
+  ],
+  "scripts": {},
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "typescript": "^5.7.3"
+  },
+  "dependencies": {
+    "@vueuse/core": "^11.3.0"
+  }
+}

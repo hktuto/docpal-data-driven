@@ -1,0 +1,48 @@
+{
+  "dataTypeViewTypeMapping": {
+    "varchar": ["text", "relation"],
+    "text": ["text", "json"],
+    "char": ["text"],
+    "int": ["number", "boolean", "relation"],
+    "bigint": ["number", "relation"],
+    "decimal": ["number"],
+    "numeric": ["number"],
+    "float": ["number"],
+    "double": ["number"],
+    "boolean": ["boolean"],
+    "timestamp": ["datetime"],
+    "timestamptz": ["datetime"],
+    "date": ["datetime"],
+    "time": ["datetime"],
+    "jsonb": ["json", "text"],
+    "json": ["json", "text"],
+    "uuid": ["file", "relation", "text"]
+  },
+  "viewTypeEditors": {
+    "text": ["input", "textarea", "email", "url", "password"],
+    "number": ["input", "slider", "stepper"],
+    "boolean": ["checkbox", "toggle", "radio"],
+    "datetime": ["date", "datetime", "time"],
+    "file": ["file_upload", "image_upload", "document_upload"],
+    "relation": ["select", "multiselect", "autocomplete", "lookup"],
+    "json": ["json_editor", "key_value_editor", "textarea"]
+  },
+  "viewTypeValidations": {
+    "text": ["required", "min_length", "max_length", "pattern", "email", "url"],
+    "number": ["required", "min", "max", "integer_only", "positive_only"],
+    "boolean": ["required"],
+    "datetime": ["required", "min_date", "max_date", "future_only", "past_only"],
+    "file": ["required", "max_size", "allowed_types", "max_files"],
+    "relation": ["required", "valid_reference"],
+    "json": ["required", "valid_json", "schema_validation"]
+  },
+  "migrationCompatibility": {
+    "varchar": ["text", "varchar", "char"],
+    "int": ["bigint", "decimal", "varchar"],
+    "boolean": ["varchar", "int"],
+    "date": ["timestamp", "varchar"],
+    "timestamp": ["varchar"],
+    "jsonb": ["text", "varchar"],
+    "uuid": ["varchar"]
+  }
+}

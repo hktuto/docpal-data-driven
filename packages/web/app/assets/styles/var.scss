@@ -1,0 +1,94 @@
+@use 'sass:math';
+@use 'sass:map';
+
+$app-color: (
+    'white': #ffffff,
+    'black': #000000,
+    'primary': (
+      'base': #15d5b9,
+    ),
+    'success': (
+      'base': #0077ff,
+    ),
+    'warning': (
+      'base': #e6a23c,
+    ),
+    'danger': (
+      'base': #f56c6c,
+    ),
+    'error': (
+      'base': #f56c6c,
+    ),
+    'info': (
+      'base': #909399,
+    ),
+);
+
+$app-border-color: (
+    '': #dcdfe6,
+    'light': #e4e7ed,
+    'lighter': #ebeef5,
+    'extra-light': #f2f6fc,
+    'dark': #d4d7de,
+    'darker': #cdd0d6,
+);
+
+$fill-color: (
+    '': #f0f2f5,
+    'light': #f5f7fa,
+    'lighter': #fafafa,
+    'extra-light': #fafcff,
+    'dark': #ebedf0,
+    'darker': #e6e8eb,
+    'blank': #ffffff,
+);
+
+$app-fill-color: (
+    '': #f0f2f5,
+    'light': #f5f7fa,
+    'lighter': #fafafa,
+    'extra-light': #fafcff,
+    'dark': #ebedf0,
+    'darker': #e6e8eb,
+    'blank': #ffffff,
+  );
+
+$app-radius: (
+    'base': 0.25rem,
+    'small': 0.25rem,
+    'middle': 0.5rem,
+    'round': 1.25rem,
+    'circle': 10e5px,
+);
+
+$app-font-size: (
+    'extra-large': 2rem,
+    'large': 1.25rem,
+    'medium': 1.2rem,
+    'base': 0.9rem,
+    'small': 0.8rem,
+    'extra-small': 0.7rem,
+);
+
+$white: map.get($app-color, 'white') !default;
+$black: map.get($app-color, 'black') !default;
+@mixin set-app-mix-light(
+    $type,
+    $number,
+    $mode: 'light',
+    $mix-color: $white
+) {
+    $app-color: map.deep-merge(
+        (
+            $type: (
+                '#{$mode}-#{$number}':
+                mix(
+                    $mix-color,
+                    map.get($app-color, $type, 'base'),
+                    math.percentage(math.div($number, 10))
+                ),
+            ),
+        ),
+        $app-color
+    ) !global;
+}

@@ -1,0 +1,14 @@
+{
+  "makefile.configureOnOpen": false,
+  "i18n-ally.localesPaths": [
+  ],
+  "cSpell.words": [
+    "docpal"
+  ],
+  "explorer.fileNesting.enabled": true,
+  "explorer.excludeGitIgnore": false,
+  "explorer.fileNesting.patterns": {
+    "package.json": "*.lock, *.json, pnpm-workspace.yaml, pnpm-lock.yaml, .pnpmfile.cjs",
+    ".env": "env.*, .env.*",
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "name": "@docpal/scripts",
+  "version": "1.0.0",
+  "description": "DocPal Development Scripts - Database setup and seed data",
+  "scripts": {
+    "seed": "tsx development/seed.ts",
+    "db:setup": "tsx ../api/src/database/setup.ts setup",
+    "db:reset": "tsx ../api/src/database/setup.ts reset",
+    "db:test": "tsx ../api/src/database/setup.ts test",
+    "db:verify": "tsx ../api/src/database/setup.ts verify",
+    "test:api": "tsx development/test-api-flow.ts",
+    "test:services": "tsx development/test-services.ts",
+    "test:schema": "tsx development/test-schema-api.ts",
+    "test:roles": "tsx development/test-role-assignment.ts",
+    "test:auto-setup": "tsx development/test-auto-setup.ts",
+    "test:audit": "tsx development/test-audit-system.ts",
+    "test:audit-flow": "tsx development/test-audit-flow.ts",
+    "poc:test": "jest poc-test.ts",
+    "test:workflow": "tsx development/test-workflow-system.ts"
+  },
+  "dependencies": {
+    "pg": "^8.11.3",
+    "uuid": "^9.0.1",
+    "node-fetch": "^2.7.0",
+    "dotenv": "^16.3.1",
+    "axios": "^1.6.0",
+    "@temporalio/workflow": "^1.8.0",
+    "@temporalio/worker": "^1.8.0",
+    "@temporalio/client": "^1.8.0",
+    "@temporalio/testing": "^1.8.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.8.10",
+    "@types/node-fetch": "^2.6.9",
+    "@types/pg": "^8.10.7",
+    "@types/uuid": "^9.0.7",
+    "typescript": "^5.2.2",
+    "tsx": "^4.1.4",
+    "jest": "^29.7.0",
+    "@types/jest": "^29.5.8"
+  }
+}
