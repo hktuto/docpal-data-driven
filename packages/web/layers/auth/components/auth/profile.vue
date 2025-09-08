@@ -94,11 +94,12 @@ async function handleFileChange (event: Event) {
     
     try {
       const response = await apiClient.files.postUpload({
+        // @ts-ignore
         body: formData,
         headers: {
           'Content-Type': 'multipart/form-data'
         }
-      })
+      }) as any
       console.log('Response:', response)
       if (response.ok) {
         const result = await response.json()

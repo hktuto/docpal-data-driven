@@ -64,7 +64,9 @@ export async function loginApi(email: string, password: string, companyId?: stri
       isAuthenticated.value = true
       user.value = response
       authInit.value = true
-      
+      await nextTick(async() => {
+        await getMe()
+      })
       // Emit user login event
       emitBus(EventType.USER_LOGIN__SUCCESS, {
         user: {

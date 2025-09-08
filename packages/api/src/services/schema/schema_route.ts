@@ -38,7 +38,7 @@ const createSchemaSchema = {
       is_relation: { type: 'boolean' },
       columns: {
         type: 'array',
-        minItems: 1,
+        minItems: 0,
         items: {
           type: 'object',
           properties: {
@@ -83,7 +83,7 @@ const updateSchemaSchema = {
       description: { type: 'string', minLength: 1 },
       columns: {
         type: 'array',
-        minItems: 1,
+        minItems: 0,
         items: {
           type: 'object',
           properties: {

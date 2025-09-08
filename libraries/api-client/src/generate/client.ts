@@ -362,20 +362,13 @@ export class api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
                     user?: {
                         id?: string;
                         email?: string;
-                        first_name?: string | null;
-                        last_name?: string | null;
-                        is_active?: boolean;
-                        /** @format date-time */
-                        created_at?: string;
-                        /** @format date-time */
-                        updated_at?: string;
+                        userProfile?: Record<string, any>;
+                        [key: string]: any;
                     };
                     company?: {
                         id?: string;
-                        name?: string;
-                        slug?: string;
-                        role?: string;
-                    } | null;
+                        [key: string]: any;
+                    };
                 },
                 {
                     error: string;
@@ -680,7 +673,7 @@ export class api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
                 description: string;
                 is_system?: boolean;
                 is_relation?: boolean;
-                /** @minItems 1 */
+                /** @minItems 0 */
                 columns: {
                     /** @pattern ^[a-z][a-z0-9_]*$ */
                     name: string;
@@ -780,7 +773,7 @@ export class api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
                 label?: string;
                 /** @minLength 1 */
                 description?: string;
-                /** @minItems 1 */
+                /** @minItems 0 */
                 columns?: {
                     /** @pattern ^[a-z][a-z0-9_]*$ */
                     name: string;
@@ -965,25 +958,33 @@ export class api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     };
     records = {
         /**
-         * No description
+         * @description Create a new record in the specified table
          *
+         * @tags records
          * @name PostTableSlug
          * @request POST:/api/records/{table_slug}
          * @secure
          */
         postTableSlug: (tableSlug: string, data: Record<string, any>, params: RequestParams = {}) =>
-            this.request<void, any>({
+            this.request<
+                Record<string, any>,
+                {
+                    error?: string;
+                }
+            >({
                 path: `/api/records/${tableSlug}`,
                 method: "POST",
                 body: data,
                 secure: true,
                 type: ContentType.Json,
+                format: "json",
                 ...params,
             }),
 
         /**
-         * No description
+         * @description Get records from the specified table with filtering and pagination
          *
+         * @tags records
          * @name GetTableSlug
          * @request GET:/api/records/{table_slug}
          * @secure
@@ -1009,17 +1010,29 @@ export class api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
             },
             params: RequestParams = {},
         ) =>
-            this.request<void, any>({
+            this.request<
+                {
+                    records?: Record<string, any>[];
+                    total?: number;
+                    limit?: number;
+                    offset?: number;
+                },
+                {
+                    error?: string;
+                }
+            >({
                 path: `/api/records/${tableSlug}`,
                 method: "GET",
                 query: query,
                 secure: true,
+                format: "json",
                 ...params,
             }),
 
         /**
-         * No description
+         * @description Create multiple records in a single batch operation
          *
+         * @tags records
          * @name PostTableSlugBatch
          * @request POST:/api/records/{table_slug}/batch
          * @secure
@@ -1035,33 +1048,52 @@ export class api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
             },
             params: RequestParams = {},
         ) =>
-            this.request<void, any>({
+            this.request<
+                {
+                    records?: Record<string, any>[];
+                    total?: number;
+                    errors?: object[];
+                    success?: boolean;
+                },
+                {
+                    error?: string;
+                }
+            >({
                 path: `/api/records/${tableSlug}/batch`,
                 method: "POST",
                 body: data,
                 secure: true,
                 type: ContentType.Json,
+                format: "json",
                 ...params,
             }),
 
         /**
-         * No description
+         * @description Get a specific record by ID from the specified table
          *
+         * @tags records
          * @name GetTableSlugRecordId
          * @request GET:/api/records/{table_slug}/{record_id}
          * @secure
          */
         getTableSlugRecordId: (tableSlug: string, recordId: string, params: RequestParams = {}) =>
-            this.request<void, any>({
+            this.request<
+                Record<string, any>,
+                {
+                    error?: string;
+                }
+            >({
                 path: `/api/records/${tableSlug}/${recordId}`,
                 method: "GET",
                 secure: true,
+                format: "json",
                 ...params,
             }),
 
         /**
-         * No description
+         * @description Update an existing record in the specified table
          *
+         * @tags records
          * @name PutTableSlugRecordId
          * @request PUT:/api/records/{table_slug}/{record_id}
          * @secure
@@ -1072,24 +1104,36 @@ export class api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
             data: Record<string, any>,
             params: RequestParams = {},
         ) =>
-            this.request<void, any>({
+            this.request<
+                Record<string, any>,
+                {
+                    error?: string;
+                }
+            >({
                 path: `/api/records/${tableSlug}/${recordId}`,
                 method: "PUT",
                 body: data,
                 secure: true,
                 type: ContentType.Json,
+                format: "json",
                 ...params,
             }),
 
         /**
-         * No description
+         * @description Delete a record from the specified table
          *
+         * @tags records
          * @name DeleteTableSlugRecordId
          * @request DELETE:/api/records/{table_slug}/{record_id}
          * @secure
          */
         deleteTableSlugRecordId: (tableSlug: string, recordId: string, params: RequestParams = {}) =>
-            this.request<void, any>({
+            this.request<
+                void,
+                {
+                    error?: string;
+                }
+            >({
                 path: `/api/records/${tableSlug}/${recordId}`,
                 method: "DELETE",
                 secure: true,
@@ -1097,8 +1141,9 @@ export class api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
             }),
 
         /**
-         * No description
+         * @description Execute advanced table query with relations and aggregations
          *
+         * @tags records
          * @name PostTableSlugQueryTable
          * @request POST:/api/records/{table_slug}/query/table
          * @secure
@@ -1140,18 +1185,25 @@ export class api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
             },
             params: RequestParams = {},
         ) =>
-            this.request<void, any>({
+            this.request<
+                Record<string, any>,
+                {
+                    error?: string;
+                }
+            >({
                 path: `/api/records/${tableSlug}/query/table`,
                 method: "POST",
                 body: data,
                 secure: true,
                 type: ContentType.Json,
+                format: "json",
                 ...params,
             }),
 
         /**
-         * No description
+         * @description Execute Kanban board query with status grouping
          *
+         * @tags records
          * @name PostTableSlugQueryKanban
          * @request POST:/api/records/{table_slug}/query/kanban
          * @secure
@@ -1196,7 +1248,9 @@ export class api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
                     boards?: any[];
                     aggregation?: Record<string, any>;
                 },
-                any
+                {
+                    error?: string;
+                }
             >({
                 path: `/api/records/${tableSlug}/query/kanban`,
                 method: "POST",
@@ -1208,8 +1262,9 @@ export class api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
             }),
 
         /**
-         * No description
+         * @description Execute hierarchical tree query with parent-child relationships
          *
+         * @tags records
          * @name PostTableSlugQueryTree
          * @request POST:/api/records/{table_slug}/query/tree
          * @secure
@@ -1249,18 +1304,25 @@ export class api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
             },
             params: RequestParams = {},
         ) =>
-            this.request<void, any>({
+            this.request<
+                Record<string, any>,
+                {
+                    error?: string;
+                }
+            >({
                 path: `/api/records/${tableSlug}/query/tree`,
                 method: "POST",
                 body: data,
                 secure: true,
                 type: ContentType.Json,
+                format: "json",
                 ...params,
             }),
 
         /**
-         * No description
+         * @description Execute aggregation statistics query with grouping
          *
+         * @tags records
          * @name PostTableSlugStatsAgg
          * @request POST:/api/records/{table_slug}/stats/agg
          * @secure
@@ -1279,18 +1341,25 @@ export class api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
             },
             params: RequestParams = {},
         ) =>
-            this.request<void, any>({
+            this.request<
+                Record<string, any>,
+                {
+                    error?: string;
+                }
+            >({
                 path: `/api/records/${tableSlug}/stats/agg`,
                 method: "POST",
                 body: data,
                 secure: true,
                 type: ContentType.Json,
+                format: "json",
                 ...params,
             }),
 
         /**
-         * No description
+         * @description Generate chart data with various visualization types
          *
+         * @tags records
          * @name PostTableSlugStatsChart
          * @request POST:/api/records/{table_slug}/stats/chart
          * @secure
@@ -1312,18 +1381,25 @@ export class api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
             },
             params: RequestParams = {},
         ) =>
-            this.request<void, any>({
+            this.request<
+                Record<string, any>,
+                {
+                    error?: string;
+                }
+            >({
                 path: `/api/records/${tableSlug}/stats/chart`,
                 method: "POST",
                 body: data,
                 secure: true,
                 type: ContentType.Json,
+                format: "json",
                 ...params,
             }),
 
         /**
-         * No description
+         * @description Execute Gantt chart query for project timeline visualization
          *
+         * @tags records
          * @name PostTableSlugQueryGantt
          * @request POST:/api/records/{table_slug}/query/gantt
          * @secure
@@ -1376,7 +1452,9 @@ export class api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
                     aggregation?: Record<string, any>;
                     total?: number;
                 },
-                any
+                {
+                    error?: string;
+                }
             >({
                 path: `/api/records/${tableSlug}/query/gantt`,
                 method: "POST",
@@ -1388,8 +1466,9 @@ export class api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
             }),
 
         /**
-         * No description
+         * @description Generate breadcrumb navigation for hierarchical data
          *
+         * @tags records
          * @name PostTableSlugBreadcrumb
          * @request POST:/api/records/{table_slug}/breadcrumb
          * @secure
@@ -1420,7 +1499,9 @@ export class api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
                     }[];
                     depth?: number;
                 },
-                any
+                {
+                    error?: string;
+                }
             >({
                 path: `/api/records/${tableSlug}/breadcrumb`,
                 method: "POST",
@@ -1432,8 +1513,9 @@ export class api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
             }),
 
         /**
-         * No description
+         * @description Execute dropdown query for form field options
          *
+         * @tags records
          * @name PostTableSlugQueryDropdown
          * @request POST:/api/records/{table_slug}/query/dropdown
          * @secure
@@ -1469,7 +1551,9 @@ export class api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
                     total?: number;
                     hasMore?: boolean;
                 },
-                any
+                {
+                    error?: string;
+                }
             >({
                 path: `/api/records/${tableSlug}/query/dropdown`,
                 method: "POST",
@@ -1482,8 +1566,9 @@ export class api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     };
     files = {
         /**
-         * No description
+         * @description Upload a file and associate it with a table record
          *
+         * @tags files
          * @name PostUpload
          * @request POST:/api/files/upload
          * @secure
@@ -1494,6 +1579,7 @@ export class api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
                     filePath?: string;
                     metadata?: object;
                     message?: string;
+                    [key: string]: any;
                 },
                 {
                     error: string;
@@ -1508,8 +1594,9 @@ export class api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
             }),
 
         /**
-         * No description
+         * @description Get file by ID for download or display
          *
+         * @tags files
          * @name GetFileid
          * @request GET:/api/files/{fileId}
          * @secure
@@ -1534,8 +1621,9 @@ export class api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
             }),
 
         /**
-         * No description
+         * @description Delete a file and remove its reference from table records
          *
+         * @tags files
          * @name PostFileidDelete
          * @request POST:/api/files/{fileId}/delete
          * @secure
@@ -1579,8 +1667,9 @@ export class api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
             }),
 
         /**
-         * No description
+         * @description Find all references to a file across table records
          *
+         * @tags files
          * @name GetFileidReferences
          * @request GET:/api/files/{fileId}/references
          * @secure
@@ -1588,9 +1677,7 @@ export class api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         getFileidReferences: (fileId: string, params: RequestParams = {}) =>
             this.request<
                 {
-                    /** @format binary */
-                    stream?: File;
-                    metadata?: object;
+                    references?: object[];
                 },
                 {
                     error: string;
@@ -1606,23 +1693,60 @@ export class api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     };
     workflows = {
         /**
-         * No description
+         * @description List all workflow definitions for the current company
          *
+         * @tags workflow
          * @name Get
          * @request GET:/api/workflows
          * @secure
          */
-        get: (params: RequestParams = {}) =>
-            this.request<void, any>({
+        get: (
+            query?: {
+                /**
+                 * @min 1
+                 * @max 100
+                 * @default 50
+                 */
+                limit?: number;
+                /**
+                 * @min 0
+                 * @default 0
+                 */
+                offset?: number;
+                status?: "active" | "inactive" | "draft";
+            },
+            params: RequestParams = {},
+        ) =>
+            this.request<
+                {
+                    id?: string;
+                    name?: string;
+                    slug?: string;
+                    version?: string;
+                    definition?: object;
+                    events?: object;
+                    status?: string;
+                    created_by?: string;
+                    created_at?: string;
+                    updated_at?: string;
+                }[],
+                {
+                    error: string;
+                    code?: string;
+                }
+            >({
                 path: `/api/workflows`,
                 method: "GET",
+                query: query,
                 secure: true,
+                format: "json",
                 ...params,
             }),
 
         /**
-         * No description
+         * @description Create a new workflow definition
          *
+         * @tags workflow
          * @name Post
          * @request POST:/api/workflows
          * @secure
@@ -1675,8 +1799,9 @@ export class api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
             }),
 
         /**
-         * No description
+         * @description Get a specific workflow definition by slug
          *
+         * @tags workflow
          * @name GetSlug
          * @request GET:/api/workflows/{slug}
          * @secure
@@ -1708,8 +1833,9 @@ export class api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
             }),
 
         /**
-         * No description
+         * @description Update an existing workflow definition
          *
+         * @tags workflow
          * @name PutSlug
          * @request PUT:/api/workflows/{slug}
          * @secure
@@ -1756,8 +1882,9 @@ export class api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
             }),
 
         /**
-         * No description
+         * @description Delete a workflow definition
          *
+         * @tags workflow
          * @name DeleteSlug
          * @request DELETE:/api/workflows/{slug}
          * @secure
@@ -1777,8 +1904,9 @@ export class api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
             }),
 
         /**
-         * No description
+         * @description Manually trigger a workflow execution
          *
+         * @tags workflow
          * @name PostSlugTrigger
          * @request POST:/api/workflows/{slug}/trigger
          * @secure
@@ -1812,8 +1940,9 @@ export class api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
             }),
 
         /**
-         * No description
+         * @description List workflow executions for a specific workflow
          *
+         * @tags workflow
          * @name GetSlugExecutions
          * @request GET:/api/workflows/{slug}/executions
          * @secure
@@ -1865,8 +1994,9 @@ export class api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
             }),
 
         /**
-         * No description
+         * @description Get details of a specific workflow execution
          *
+         * @tags workflow
          * @name GetExecutionsId
          * @request GET:/api/workflows/executions/{id}
          * @secure
@@ -1901,8 +2031,9 @@ export class api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
             }),
 
         /**
-         * No description
+         * @description Cancel a running workflow execution
          *
+         * @tags workflow
          * @name PostExecutionsIdCancel
          * @request POST:/api/workflows/executions/{id}/cancel
          * @secure
@@ -1935,8 +2066,9 @@ export class api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     };
     userTasks = {
         /**
-         * No description
+         * @description List user tasks assigned to the current user
          *
+         * @tags workflow
          * @name GetUserTasks
          * @request GET:/api/user-tasks
          * @secure
@@ -1991,8 +2123,9 @@ export class api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
             }),
 
         /**
-         * No description
+         * @description Get details of a specific user task
          *
+         * @tags workflow
          * @name GetUserTasksId
          * @request GET:/api/user-tasks/{id}
          * @secure
@@ -2030,8 +2163,9 @@ export class api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
             }),
 
         /**
-         * No description
+         * @description Complete a user task in a workflow execution
          *
+         * @tags workflow
          * @name PostUserTasksIdComplete
          * @request POST:/api/user-tasks/{id}/complete
          * @secure

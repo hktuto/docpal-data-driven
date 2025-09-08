@@ -15,6 +15,10 @@
     "test:auto-setup": "tsx development/test-auto-setup.ts",
     "test:audit": "tsx development/test-audit-system.ts",
     "test:audit-flow": "tsx development/test-audit-flow.ts",
+    "test:import": "tsx development/run-import-tests.ts",
+    "test:import-basic": "tsx development/test-import-basic.ts",
+    "test:import-api": "tsx development/test-import-api.ts",
+    "test:import-data": "tsx development/generate-test-data.ts",
     "poc:test": "jest poc-test.ts",
     "test:workflow": "tsx development/test-workflow-system.ts"
   },

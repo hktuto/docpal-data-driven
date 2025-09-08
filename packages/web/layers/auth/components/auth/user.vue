@@ -53,7 +53,7 @@ function openSetting(){
 <template>
     <div class="userMenuWidgetContainer">
         <AppLogo />
-        <div v-if="user" class="username">
+        <div v-if="user && user.userProfile" class="username">
             {{ user.userProfile.name }}
         </div>
         <div class="actions">

@@ -78,25 +78,25 @@ const createApp = async () => {
   //     secure: config.session.secure,
   //     maxAge: config.session.maxAge * 1000, // Convert to milliseconds
   //     httpOnly: true,
-  //     sameSite: 'lax',
+  //     path: '/',
   //   },
-  //   // store: {
-  //   //   set: (sessionId: string, session: any, callback: any) => {
-  //   //     valkeyClient.setex(`session:${sessionId}`, config.session.maxAge, JSON.stringify(session))
-  //   //       .then(() => callback())
-  //   //       .catch(callback);
-  //   //   },
-  //   //   get: (sessionId: string, callback: any) => {
-  //   //     valkeyClient.get(`session:${sessionId}`)
-  //   //       .then(data => callback(null, data ? JSON.parse(data) : null))
-  //   //       .catch(callback);
-  //   //   },
-  //   //   destroy: (sessionId: string, callback: any) => {
-  //   //     valkeyClient.del(`session:${sessionId}`)
-  //   //       .then(() => callback())
-  //   //       .catch(callback);
-  //   //   },
-  //   // },
+  //   store: {
+  //     set: (sessionId: string, session: any, callback: any) => {
+  //       valkeyClient.setex(`session:${sessionId}`, config.session.maxAge, JSON.stringify(session))
+  //         .then(() => callback())
+  //         .catch(callback);
+  //     },
+  //     get: (sessionId: string, callback: any) => {
+  //       valkeyClient.get(`session:${sessionId}`)
+  //         .then(data => callback(null, data ? JSON.parse(data) : null))
+  //         .catch(callback);
+  //     },
+  //     destroy: (sessionId: string, callback: any) => {
+  //       valkeyClient.del(`session:${sessionId}`)
+  //         .then(() => callback())
+  //         .catch(callback);
+  //     },
+  //   },
   // });
 
   // Swagger documentation
@@ -216,6 +216,7 @@ const createApp = async () => {
           roles: '/api/roles',
           groups: '/api/groups',
           schemas: '/api/schemas',
+          'schema-import': '/api/schemas/import',
           'data-views': '/api/views/:table_slug',
           records: '/api/records',
           files: '/api/files',
@@ -237,6 +238,10 @@ const createApp = async () => {
     // Register schema routes
     const { registerSchemaRoutes } = await import('./services/schema/schema_route');
     await fastify.register(registerSchemaRoutes, { prefix: '/api/schemas' });
+
+    // Register import routes
+    const { registerImportRoutes } = await import('./services/import/import_route');
+    await fastify.register(registerImportRoutes, { prefix: '/api/schemas/import' });
 
     // Register record routes
     const { registerRecordRoutes } = await import('./services/record/record_route');
@@ -287,6 +292,16 @@ const start = async () => {
     console.log(`📊 Health check: http://${config.host}:${config.port}/health`);
     console.log(`🔗 API docs: http://${config.host}:${config.port}/docs`);
     
+    // Schedule cleanup of expired imports every hour
+    const { cleanupExpiredImports } = await import('./services/import/import_service');
+    const cleanupInterval = setInterval(() => {
+      console.log('🧹 Running scheduled cleanup of expired imports...');
+      cleanupExpiredImports();
+    }, 60 * 60 * 1000); // Every hour
+    
+    // Store interval reference for cleanup
+    (global as any).cleanupInterval = cleanupInterval;
+    
   } catch (error) {
     console.error('❌ Failed to start server:', error);
     process.exit(1);
@@ -296,11 +311,25 @@ const start = async () => {
 // Graceful shutdown
 process.on('SIGINT', async () => {
   console.log('🛑 Received SIGINT, shutting down gracefully...');
+  
+  // Clear cleanup interval
+  if ((global as any).cleanupInterval) {
+    clearInterval((global as any).cleanupInterval);
+    console.log('🧹 Cleared import cleanup interval');
+  }
+  
   process.exit(0);
 });
 
 process.on('SIGTERM', async () => {
   console.log('🛑 Received SIGTERM, shutting down gracefully...');
+  
+  // Clear cleanup interval
+  if ((global as any).cleanupInterval) {
+    clearInterval((global as any).cleanupInterval);
+    console.log('🧹 Cleared import cleanup interval');
+  }
+  
   process.exit(0);
 });
 

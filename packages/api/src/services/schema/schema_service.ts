@@ -498,8 +498,8 @@ const validateSchemaData = (schemaData: CreateSchemaRequest): void => {
  * Validate column definitions
  */
 const validateColumnDefinitions = (columns: ColumnDefinition[]): void => {
-  if (!Array.isArray(columns) || columns.length === 0) {
-    throw new Error('At least one column is required');
+  if (!Array.isArray(columns)) {
+    throw new Error('Columns must be an array');
   }
   
   const columnNames = new Set<string>();
